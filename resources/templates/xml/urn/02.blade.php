@@ -34,6 +34,9 @@
     @isset($orderreference)
         @include('xml._order_reference', ['node' => 'OrderReference'])
     @endisset
+    @isset($request->additional_document_reference)
+        @include('xml._additional_document_reference_general', ['node' => 'request'])
+    @endisset
     {{-- AccountingSupplierParty --}}
     @include('xml._accounting', ['node' => 'AccountingSupplierParty', 'supplier' => true])
     {{-- AccountingCustomerParty --}}
