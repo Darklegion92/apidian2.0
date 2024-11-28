@@ -6,7 +6,7 @@ Dentro del directorio del apidian2021 o apidian2022 o apidian2023:
 
 	   git config --global http.sslverify false
 	a. git remote remove origin
-	b. git remote add origin https://gitlab.buho.la/facturalatam/co-apidian2024.git
+	b. git remote add origin https://gitlab.torresoftware.com/TorreSoftware/apidian2025.git
 	c. nano .git/config
 		Debe quedar dicho archivo de la siguiente manera, si falta algo, agregarlo manualmente
 		

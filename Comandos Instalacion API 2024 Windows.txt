@@ -14,7 +14,7 @@ https://villagrabaez.medium.com/actualizar-php-a-la-versi%C3%B3n-7-4-en-laragon-
 #COMANDOS DE INSTALACION (usar la terminal de laragon):
 
 git config --global http.sslverify false
-git clone https://gitlab.buho.la/facturalatam/co-apidian2024.git apidian
+git clone https://gitlab.torresoftware.com/TorreSoftware/apidian2025.git apidian
 cd apidian
 cp .env.example .env
 rm composer.lock

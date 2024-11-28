@@ -49,7 +49,7 @@ mv composer.phar /usr/local/bin/composer
 #INSTALAR APIDDIAN
 cd /var/www/html/
 git config --global http.sslverify false
-git clone https://gitlab.buho.la/facturalatam/co-apidian2024.git apidian
+git clone https://gitlab.torresoftware.com/TorreSoftware/apidian2025.git apidian
 cd apidian
 cp .env.example .env
 nano .env

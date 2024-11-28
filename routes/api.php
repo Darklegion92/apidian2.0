@@ -15,7 +15,7 @@ Route::prefix('/ubl2.1')->group(function () {
     Route::get('/emailconfig', 'Api\ConfigurationController@emailconfig');
 
     // Configuration
-    Route::prefix('/config')->group(function () {
+    Route::prefix('/config')->middleware(['check.api.register'])->group(function () {
         Route::post('/{nit}/{dv?}', 'Api\ConfigurationController@store');
         Route::post('/delete/{nit}/{email}', 'Api\ConfigurationController@destroyCompany');
     });
@@ -99,7 +99,7 @@ Route::middleware('auth:api')->group(function () {
             Route::put('/generateddocuments', 'Api\ConfigurationController@storeInitialDocument');
         });
 
-        Route::prefix('/delete')->group(function () {
+        Route::prefix('/delete')->middleware(['check.api.register'])->group(function () {
             Route::post('/company/{nit}/{dv}', 'Api\ConfigurationController@deleteCompany');
         });
 
