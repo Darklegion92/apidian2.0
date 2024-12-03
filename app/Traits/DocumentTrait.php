@@ -365,13 +365,13 @@ trait DocumentTrait
             else
                 $totalbase = $request->legal_monetary_totals['line_extension_amount'];
 
-            if($tipodoc == 'TTR' or $tipodoc == 'SRV' or $tipodoc == 'CIN')
+            if($tipodoc == 'SRV' or $tipodoc == 'CIN')
                 if($company->eqdocs_type_environment_id == 1)
                     return 'https://catalogo-vpfe.dian.gov.co/document/searchqr?documentkey='.$cufecude;
                 else
                     return 'https://catalogo-vpfe-hab.dian.gov.co/document/searchqr?documentkey='.$cufecude;
 
-            if($tipodoc == "INVOICE" || $tipodoc == "POS"){
+            if($tipodoc == "INVOICE" || $tipodoc == "POS" || $tipodoc == "TTR"){
                 if($company->type_environment_id == 2){
                     if(isset($request->tax_totals[0]['tax_amount'])){
                         $qrBase64 = base64_encode(QrCode::format('png')
@@ -451,7 +451,10 @@ trait DocumentTrait
                 if($tipodoc == 'POS')
                     $filename = storage_path("app/public/{$company->identification_number}/POSS-{$resolution->next_consecutive}.pdf");
                 else
-                    $filename = storage_path("app/public/{$company->identification_number}/FES-{$resolution->next_consecutive}.pdf");
+                    if($tipodoc == 'TTR')
+                        $filename = storage_path("app/public/{$company->identification_number}/TTRS-{$resolution->next_consecutive}.pdf");
+                    else
+                        $filename = storage_path("app/public/{$company->identification_number}/FES-{$resolution->next_consecutive}.pdf");
             }
             else
                 if($tipodoc == "NC"){
@@ -850,24 +853,18 @@ trait DocumentTrait
         }
 
          if($template == 1){
-
             $format_print = 'A4';
             $margin_top = '28';
             $margin_left = '5';
             $margin_right = '5';
             $margin_bottom = '12';
-
          }elseif($template == 2)  {
-
             $format_print = 'A4';
             $margin_top = '39';
             $margin_left = '10';
             $margin_right = '10';
             $margin_bottom = '12';
-
          } elseif($template == 3)  {
-
-
             $margin_top = '2';
             // Definir el ancho y el alto en milímetros (por ejemplo, para un largo de 150mm)
             $ancho = 80;  // 80mm de ancho para la impresora de tirilla
@@ -875,9 +872,7 @@ trait DocumentTrait
             $margin_left = '2';
             $margin_right = '2';
             $margin_bottom = '5';
-
             $format_print = [$ancho, $alto];
-
          }
 
         if($template){
