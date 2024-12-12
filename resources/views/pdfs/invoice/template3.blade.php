@@ -7,7 +7,7 @@
 
 {{-- Header incluido en el template--}}
 
-<table style="width: 100%; font-size: 8px;">
+<table style="width: 100%; font-size: 9px; font-weight: bold;">
     <!-- Logo en la parte superior -->
     <tr>
         <td style="text-align: center;">
@@ -22,8 +22,8 @@
             @if(isset($request->establishment_name) && $request->establishment_name != 'Oficina Principal')
                 <strong>{{$request->establishment_name}}</strong><br>
             @endif
-            NIT: {{$company->identification_number}}-{{$company->dv}} - Dirección: {{$company->address}}<br>
-            Tel: {{$company->phone}} - Correo: {{$user->email}}<br>
+            <strong>NIT: {{$company->identification_number}}-{{$company->dv}} - Dirección: {{$company->address}}</strong><br>
+            <strong>Tel: {{$company->phone}} - Correo: {{$user->email}}</strong><br>
         </td>
     </tr>
 
@@ -31,8 +31,8 @@
     <tr>
         <td style="text-align: center;">
             <strong>FACTURA ELECTRONICA DE VENTA {{$resolution->prefix}} - {{$request->number}}</strong><br>
-            Fecha Emisión: {{$date}} - Fecha Validación DIAN: {{$date}}<br>
-            Hora Validación DIAN: {{$time}}<br>
+            <strong>Fecha Emisión: {{$date}} - Fecha Validación DIAN: {{$date}}</strong><br>
+            <strong>Hora Validación DIAN: {{$time}}</strong><br>
         </td>
     </tr>
 
@@ -40,29 +40,29 @@
     <tr>
         <td style="text-align: center;">
             @if(isset($request->ivaresponsable) && $request->ivaresponsable != $company->type_regime->name)
-                {{$company->type_regime->name}} - {{$request->ivaresponsable}}<br>
+                <strong>{{$company->type_regime->name}} - {{$request->ivaresponsable}}</strong><br>
             @endif
             @if(isset($request->nombretipodocid))
-                Tipo Documento ID: {{$request->nombretipodocid}}<br>
+                <strong>Tipo Documento ID: {{$request->nombretipodocid}}</strong><br>
             @endif
             @if(isset($request->tarifaica) && $request->tarifaica != '100')
-                TARIFA ICA: {{$request->tarifaica}}%<br>
+                <strong>TARIFA ICA: {{$request->tarifaica}}%</strong><br>
             @endif
             @if(isset($request->actividadeconomica))
-                ACTIVIDAD ECONOMICA: {{$request->actividadeconomica}}<br>
+                <strong>ACTIVIDAD ECONOMICA: {{$request->actividadeconomica}}</strong><br>
             @endif
             @if(isset($request->seze))
                 <?php
                     $aseze = substr($request->seze, 0, strpos($request->seze, '-', 0));
                     $asociedad = substr($request->seze, strpos($request->seze, '-', 0) + 1);
                 ?>
-                Regimen SEZE Año: {{$aseze}} Constitución Sociedad Año: {{$asociedad}}<br>
+                <strong>Regimen SEZE Año: {{$aseze}} Constitución Sociedad Año: {{$asociedad}}</strong><br>
             @endif
-            Resolución de Facturación Electrónica No. {{$resolution->resolution}} de {{$resolution->resolution_date}}<br>
-            Prefijo: {{$resolution->prefix}}, Rango {{$resolution->from}} al {{$resolution->to}}<br>
-            Vigencia Desde: {{$resolution->date_from}} Hasta: {{$resolution->date_to}}<br>
+            <strong>Resolución de Facturación Electrónica No. {{$resolution->resolution}} de {{$resolution->resolution_date}}</strong><br>
+            <strong>Prefijo: {{$resolution->prefix}}, Rango {{$resolution->from}} al {{$resolution->to}}</strong><br>
+            <strong>Vigencia Desde: {{$resolution->date_from}} Hasta: {{$resolution->date_to}}</strong><br>
             @if (isset($request->seze))
-                FAVOR ABSTENERSE DE PRACTICAR RETENCION EN LA FUENTE REGIMEN ESPECIAL DECRETO 2112 DE 2019<br>
+                <strong>FAVOR ABSTENERSE DE PRACTICAR RETENCION EN LA FUENTE REGIMEN ESPECIAL DECRETO 2112 DE 2019</strong><br>
             @endif
         </td>
     </tr>
@@ -71,26 +71,26 @@
     <tr>
         <td style="text-align: center;">
             @if(isset($request->establishment_address))
-                {{$request->establishment_address}} -
+                <strong>{{$request->establishment_address}} -</strong>
             @else
-                {{$company->address}} -
+                <strong>{{$company->address}} -</strong>
             @endif
             @inject('municipality', 'App\Municipality')
             @if(isset($request->establishment_municipality))
-                {{$municipality->findOrFail($request->establishment_municipality)['name']}} - {{$municipality->findOrFail($request->establishment_municipality)['department']['name']}} -
+                <strong>{{$municipality->findOrFail($request->establishment_municipality)['name']}} - {{$municipality->findOrFail($request->establishment_municipality)['department']['name']}} -</strong>
             @else
-                {{$company->municipality->name}} - {{$municipality->findOrFail($company->municipality->id)['department']['name']}} -
+                <strong>{{$company->municipality->name}} - {{$municipality->findOrFail($company->municipality->id)['department']['name']}} -</strong>
             @endif
             {{$company->country->name}}<br>
             @if(isset($request->establishment_phone))
-                Teléfono: {{$request->establishment_phone}}<br>
+                <strong>Teléfono: {{$request->establishment_phone}}</strong><br>
             @else
-                Teléfono: {{$company->phone}}<br>
+                <strong>Teléfono: {{$company->phone}}</strong><br>
             @endif
             @if(isset($request->establishment_email))
-                E-mail: {{$request->establishment_email}}<br>
+                <strong>E-mail: {{$request->establishment_email}}</strong><br>
             @else
-                E-mail: {{$user->email}}<br>
+                <strong>E-mail: {{$user->email}}</strong><br>
             @endif
         </td>
     </tr>
@@ -102,115 +102,115 @@
 <hr>
 
 <body>
-    <table style="font-size: 12px">
+    <table style="font-size: 13px; font-weight: bold;" >
         <tr>
             <td class="vertical-align-top" style="width: 60%;">
                 <table>
                     <tr>
-                        <td>CC o NIT:</td>
-                        <td>{{$customer->company->identification_number}}-{{$request->customer['dv'] ?? NULL}} </td>
+                        <td><strong>CC o NIT:</strong></td>
+                        <td><strong>{{$customer->company->identification_number}}-{{$request->customer['dv'] ?? NULL}} </strong></td>
                     </tr>
                     <tr>
-                        <td>Cliente:</td>
-                        <td>{{$customer->name}}</td>
+                        <td><strong>Cliente:</strong></td>
+                        <td><strong>{{$customer->name}}</strong></td>
                     </tr>
                     <tr>
-                        <td>Régimen:</td>
-                        <td>{{$customer->company->type_regime->name}}</td>
+                        <td><strong>Régimen:</strong></td>
+                        <td><strong>{{$customer->company->type_regime->name}}</strong></td>
                     </tr>
                     <tr>
-                        <td>Obligación:</td>
-                        <td>{{$customer->company->type_liability->name}}</td>
+                        <td><strong>Obligación:</strong></td>
+                        <td><strong>{{$customer->company->type_liability->name}}</strong></td>
                     </tr>
                     <tr>
-                        <td>Dirección:</td>
-                        <td>{{$customer->company->address}}</td>
+                        <td><strong>Dirección:</strong></td>
+                        <td><strong>{{$customer->company->address}}</strong></td>
                     </tr>
                     <tr>
-                        <td>Ciudad:</td>
+                        <td><strong>Ciudad:</td>
                         @if($customer->company->country->id == 46)
-                            <td>{{$customer->company->municipality->name}} - {{$customer->company->country->name}} </td>
+                            <td><strong>{{$customer->company->municipality->name}} - {{$customer->company->country->name}} </strong></td>
                         @else
-                            <td>{{$customer->company->municipality_name}} - {{$customer->company->state_name}} - {{$customer->company->country->name}} </td>
+                            <td><strong>{{$customer->company->municipality_name}} - {{$customer->company->state_name}} - {{$customer->company->country->name}} </strong></td>
                         @endif
                     </tr>
                     <tr>
-                        <td>Teléfono:</td>
-                        <td>{{$customer->company->phone}}</td>
+                        <td><strong>Teléfono:</strong></td>
+                        <td><strong>{{$customer->company->phone}}</strong></td>
                     </tr>
                     <tr>
-                        <td>Email:</td>
-                        <td>{{$customer->email}}</td>
+                        <td><strong>Email:</td>
+                        <td><strong>{{$customer->email}}</strong></td>
                     </tr>
                 </table>
             </td>
             <td class="vertical-align-top" style="width: 40%; padding-left: 1rem">
                 <table>
                     <tr>
-                        <td>Forma de Pago:</td>
-                        <td>{{$paymentForm[0]->name}}</td>
+                        <td><strong>Forma de Pago:</strong></td>
+                        <td><strong>{{$paymentForm[0]->name}}</strong></td>
                     </tr>
                     <tr>
-                        <td>Medios de Pago:</td>
+                        <td><strong>Medios de Pago:</td>
                         <td>
                             @foreach ($paymentForm as $paymentF)
-                                {{$paymentF->nameMethod}}<br>
+                                <strong>{{$paymentF->nameMethod}}</strong><br>
                             @endforeach
                         </td>
                     </tr>
                     <tr>
-                        <td>Plazo Para Pagar:</td>
-                        <td>{{$paymentForm[0]->duration_measure}} Dias</td>
+                        <td><strong>Plazo Para Pagar:</strong></td>
+                        <td><strong>{{$paymentForm[0]->duration_measure}} Dias</strong></td>
                     </tr>
                     <tr>
-                        <td>Fecha Vencimiento:</td>
-                        <td>{{$paymentForm[0]->payment_due_date}}</td>
+                        <td><strong>Fecha Vencimiento:</strong></td>
+                        <td><strong>{{$paymentForm[0]->payment_due_date}}</strong></td>
                     </tr>
                     @if(isset($request['order_reference']['id_order']))
                     <tr>
-                        <td>Número Pedido:</td>
-                        <td>{{$request['order_reference']['id_order']}}</td>
+                        <td><strong>Número Pedido:</strong></td>
+                        <td><strong>{{$request['order_reference']['id_order']}}</strong></td>
                     </tr>
                     @endif
                     @if(isset($request['order_reference']['issue_date_order']))
                     <tr>
-                        <td>Fecha Pedido:</td>
-                        <td>{{$request['order_reference']['issue_date_order']}}</td>
+                        <td><strong>Fecha Pedido:</strong></td>
+                        <td><strong>{{$request['order_reference']['issue_date_order']}}</strong></td>
                     </tr>
                     @endif
                     @if(isset($healthfields))
                     <tr>
-                        <td>Inicio Periodo Facturación:</td>
-                        <td>{{$healthfields->invoice_period_start_date}}</td>
+                        <td><strong>Inicio Periodo Facturación:</strong></td>
+                        <td><strong>{{$healthfields->invoice_period_start_date}}</strong></td>
                     </tr>
                     <tr>
-                        <td>Fin Periodo Facturación:</td>
-                        <td>{{$healthfields->invoice_period_end_date}}</td>
+                        <td><strong>Fin Periodo Facturación:</strong></td>
+                        <td><strong>{{$healthfields->invoice_period_end_date}}</strong></td>
                     </tr>
                     @endif
                     @if(isset($request['number_account']))
                     <tr>
-                        <td>Número de cuenta:</td>
-                        <td>{{$request['number_account'] }}</td>
+                        <td><strong>Número de cuenta:</strong></td>
+                        <td><strong>{{$request['number_account'] }}</strong></td>
                     </tr>
                     @endif
                     @if(isset($request['deliveryterms']))
                     <tr>
-                        <td>Terminos de Entrega:</td>
-                        <td>{{$request['deliveryterms']['loss_risk_responsibility_code']}} - {{ $request['deliveryterms']['loss_risk'] }}</td>
+                        <td><strong>Terminos de Entrega:</strong></td>
+                        <td><strong>{{$request['deliveryterms']['loss_risk_responsibility_code']}} - {{ $request['deliveryterms']['loss_risk'] }}</strong></td>
                     </tr>
                     <tr>
-                        <td>T.R.M:</td>
-                        <td>{{number_format($request['calculationrate'], 2)}}</td>
+                        <td><strong>T.R.M:</strong></td>
+                        <td><strong>{{number_format($request['calculationrate'], 2)}}</strong></td>
                     </tr>
                     <tr>
-                        <td>Fecha T.R.M:</td>
-                        <td>{{$request['calculationratedate']}}</td>
+                        <td><strong>Fecha T.R.M:</strong></td>
+                        <td><strong>{{$request['calculationratedate']}}</strong></td>
                     </tr>
                     <tr>
                         @inject('currency', 'App\TypeCurrency')
-                        <td>Tipo Moneda:</td>
-                        <td>{{$currency->findOrFail($request['idcurrency'])['name']}}</td>
+                        <td><strong>Tipo Moneda:</strong></td>
+                        <td><strong>{{$currency->findOrFail($request['idcurrency'])['name']}}</strong></td>
                     </tr>
                     @endif
                 </table>
@@ -221,7 +221,7 @@
     <hr>
 
     @isset($healthfields)
-        <table class="table" style="width: 100%;">
+        <table class="table" style="width: 100%; font-weight: bold;">
             <thead>
                 <tr>
                     <th class="text-center" style="width: 100%;">INFORMACION REFERENCIAL SECTOR SALUD</th>
@@ -258,7 +258,7 @@
     @endisset
 
 
-        <table class="tabla-items">
+        <table class="tabla-items" style="font-weight: bold;">
             <thead>
                 <tr>
                     <th>#</th>
@@ -303,7 +303,7 @@
                             <td>
                                 @if(isset($item['notes']))
                                     {{$item['description']}}
-                                    <p style="font-size: 9px">{{$item['notes']}}</p>
+                                    <p style="font-size: 10px">{{$item['notes']}}</p>
                                 @else
                                     {{$item['description']}}
                                 @endif
@@ -358,7 +358,7 @@
     {{--seccion de immpuestos --}}
 
             <!-- Tabla para IVA y Retenciones -->
-            <table class="tabla-impuestos">
+            <table class="tabla-impuestos" style="font-weight: bold;">
                 <tr>
                     <!-- Columna de IVA -->
                     <td style="width: 50%; text-align: center;">
@@ -390,7 +390,7 @@
 
             <!-- Tabla para Totales -->
             <!-- Tabla para Totales, incluyendo la información adicional -->
-            <table class="tabla-totales" style="margin-top: 8px;">
+            <table class="tabla-totales" style="margin-top: 8px; font-weight: bold;">
                 <tr>
                     <th>Nro Lineas</th>
                     <td>{{$ItemNro}}</td>
@@ -473,7 +473,7 @@
 
 
             @inject('Varios', 'App\Custom\NumberSpellOut')
-            <div class="text-right" style="margin-top: -25px;">
+            <div class="text-right" style="margin-top: -25px; font-weight: bold;">
                 <div>
                     <p style="font-size: 12pt">
                         @php
@@ -506,7 +506,7 @@
         <div class="summarys">
             <div class="text-word" id="note">
                 <p><strong>NOTAS:</strong></p>
-                <p style="font-style: italic; font-size: 9px">{{$notes}}</p>
+                <p style="font-style: italic; font-size: 10px; font-weight: bold;">{{$notes}}</p>
             </div>
         </div>
         @endif
@@ -541,7 +541,7 @@
     --}}
 
     <!-- Footer -->
-<div id="footer" style="font-size: 8px; text-align: center; margin-top: 10px;">
+<div id="footer" style="font-size: 9px; text-align: center; margin-top: 10px; font-weight: bold;">
     <hr style="margin-bottom: 4px;">
     <p id='mi-texto'>
         Factura No: {{$resolution->prefix}} - {{$request->number}}<br>
