@@ -13,7 +13,7 @@
     <p>base de datos, sin embargo, para hacerla efectiva debe realizar una confirmacion en nuestro</p>
     <p>sistema mediante dar click en el siguiente enlace:</p>
     <p></p>
-    <a href={{config('app.url')}}/accept-retrieve-password-seller/{{$seller->identification_number}}/{{$seller->newpassword}}">Haga click aqui para confirmar el cambio de password en su plataforma por el siguiente password:</a>
+    <a href="{{config('app.url')}}/accept-retrieve-password-seller/{{$seller->identification_number}}/{{$seller->newpassword}}">Haga click aqui para confirmar el cambio de password en su plataforma por el siguiente password:</a>
     <p></p>
     <p>Nuevo Password de Ingreso a la plataforma despues de confirmar: {{$password}}</p>
     <p></p>
