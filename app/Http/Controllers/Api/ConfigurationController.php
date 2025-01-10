@@ -168,6 +168,8 @@ class ConfigurationController extends Controller
                     'mail_username' => $request->mail_username,
                     'mail_password' => $request->mail_password,
                     'mail_encryption' => $request->mail_encryption,
+                    'mail_from_address' => $request->mail_from_address,
+                    'mail_from_name' => $request->mail_from_name,
                 ]);
 
                 if($user->id_administrator == null && isset($request->id_administrator) && $request->id_administrator != null)
@@ -294,6 +296,8 @@ class ConfigurationController extends Controller
                     'mail_username' => $request->mail_username,
                     'mail_password' => $request->mail_password,
                     'mail_encryption' => $request->mail_encryption,
+                    'mail_from_address' => $request->mail_from_address,
+                    'mail_from_name' => $request->mail_from_name,
                 ]);
                 $user->company()->update([
                     'dv' => $dv,

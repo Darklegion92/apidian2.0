@@ -18,11 +18,12 @@ use Illuminate\Support\Facades\Mail;
 use Exception;
 use App\Http\Requests\Api\SendPayrollEmailRequest;
 use App\Mail\DocumentPayrollEmail;
+use App\Traits\ConfiguresMailServer;
 use Carbon\Carbon;
 
 class SendEmailController extends Controller
 {
-    use DocumentTrait;
+    use DocumentTrait, ConfiguresMailServer;
 
     /**
      * SendEmail.
@@ -45,13 +46,7 @@ class SendEmailController extends Controller
             \Config::set('mail.encryption', $smtp_parameters->toArray()['encryption']);
         }
         else
-            if($user->validate_mail_server()){
-                \Config::set('mail.host', $user->mail_host);
-                \Config::set('mail.port', $user->mail_port);
-                \Config::set('mail.username', $user->mail_username);
-                \Config::set('mail.password', $user->mail_password);
-                \Config::set('mail.encryption', $user->mail_encryption);
-            }
+            $this->configureMailServer($user);
 
         // User company
         $company = $user->company;
@@ -154,13 +149,7 @@ class SendEmailController extends Controller
             \Config::set('mail.encryption', $smtp_parameters->toArray()['encryption']);
         }
         else
-            if($user->validate_mail_server()){
-                \Config::set('mail.host', $user->mail_host);
-                \Config::set('mail.port', $user->mail_port);
-                \Config::set('mail.username', $user->mail_username);
-                \Config::set('mail.password', $user->mail_password);
-                \Config::set('mail.encryption', $user->mail_encryption);
-            }
+            $this->configureMailServer($user);
 
         if(empty($company))
             return view('customerloginmensaje', ['titulo' => 'Error al realizar el envio.',
@@ -241,13 +230,7 @@ class SendEmailController extends Controller
             \Config::set('mail.encryption', $smtp_parameters->toArray()['encryption']);
         }
         else
-            if($user->validate_mail_server()){
-                \Config::set('mail.host', $user->mail_host);
-                \Config::set('mail.port', $user->mail_port);
-                \Config::set('mail.username', $user->mail_username);
-                \Config::set('mail.password', $user->mail_password);
-                \Config::set('mail.encryption', $user->mail_encryption);
-            }
+            $this->configureMailServer($user);
 
         if(empty($company))
             return view('customerloginmensaje', ['titulo' => 'Error al realizar el envio.',
@@ -343,13 +326,7 @@ class SendEmailController extends Controller
                 \Config::set('mail.encryption', $smtp_parameters->toArray()['encryption']);
             }
             else
-                if($user->validate_mail_server()){
-                    \Config::set('mail.host', $user->mail_host);
-                    \Config::set('mail.port', $user->mail_port);
-                    \Config::set('mail.username', $user->mail_username);
-                    \Config::set('mail.password', $user->mail_password);
-                    \Config::set('mail.encryption', $user->mail_encryption);
-                }
+                $this->configureMailServer($user);
 
             $company = $user->company;
             $email = $request->email;

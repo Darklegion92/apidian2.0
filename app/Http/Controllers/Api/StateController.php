@@ -22,11 +22,12 @@ use App\TypeLiability;
 use ubl21dian\XAdES\SignAttachedDocument;
 use App\Http\Requests\Api\StatusRequest;
 use App\Http\Requests\Api\XmlDocumentRequest;
+use App\Traits\ConfiguresMailServer;
 use Illuminate\Support\Facades\Mail;
 
 class StateController extends Controller
 {
-    use DocumentTrait;
+    use DocumentTrait, ConfiguresMailServer;
 
     /**
      * Zip.
@@ -49,13 +50,7 @@ class StateController extends Controller
             \Config::set('mail.encryption', $smtp_parameters->toArray()['encryption']);
         }
         else
-            if($user->validate_mail_server()){
-                \Config::set('mail.host', $user->mail_host);
-                \Config::set('mail.port', $user->mail_port);
-                \Config::set('mail.username', $user->mail_username);
-                \Config::set('mail.password', $user->mail_password);
-                \Config::set('mail.encryption', $user->mail_encryption);
-            }
+            $this->configureMailServer($user);
 
         // User company
         $company = $user->company;
@@ -530,13 +525,7 @@ class StateController extends Controller
             \Config::set('mail.encryption', $smtp_parameters->toArray()['encryption']);
         }
         else
-            if($user->validate_mail_server()){
-                \Config::set('mail.host', $user->mail_host);
-                \Config::set('mail.port', $user->mail_port);
-                \Config::set('mail.username', $user->mail_username);
-                \Config::set('mail.password', $user->mail_password);
-                \Config::set('mail.encryption', $user->mail_encryption);
-            }
+            $this->configureMailServer($user);
 
         $company = $user->company;
 

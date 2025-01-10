@@ -28,13 +28,14 @@ use ubl21dian\Templates\SOAP\SendBillSync;
 use ubl21dian\Templates\SOAP\SendTestSetAsync;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InvoiceMail;
+use App\Traits\ConfiguresMailServer;
 use Carbon\Carbon;
 use DateTime;
 use Storage;
 
 class InvoiceTransportController extends Controller
 {
-    use DocumentTrait;
+    use DocumentTrait, ConfiguresMailServer;
 
     /**
      * Store.
@@ -56,13 +57,7 @@ class InvoiceTransportController extends Controller
             \Config::set('mail.encryption', $smtp_parameters->toArray()['encryption']);
         }
         else
-            if($user->validate_mail_server()){
-                \Config::set('mail.host', $user->mail_host);
-                \Config::set('mail.port', $user->mail_port);
-                \Config::set('mail.username', $user->mail_username);
-                \Config::set('mail.password', $user->mail_password);
-                \Config::set('mail.encryption', $user->mail_encryption);
-            }
+            $this->configureMailServer($user);
 
         // User company
         $company = $user->company;

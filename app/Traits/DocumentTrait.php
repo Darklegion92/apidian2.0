@@ -42,6 +42,7 @@ use Carbon\Carbon;
  */
 trait DocumentTrait
 {
+    use ConfiguresMailServer;
     /**
      * PPP.
      *
@@ -117,13 +118,7 @@ trait DocumentTrait
     protected function registerEmployee($data, $sendmail = false)
     {
         $user = auth()->user();
-        if($user->validate_mail_server()){
-            \Config::set('mail.host', $user->mail_host);
-            \Config::set('mail.port', $user->mail_port);
-            \Config::set('mail.username', $user->mail_username);
-            \Config::set('mail.password', $user->mail_password);
-            \Config::set('mail.encryption', $user->mail_encryption);
-        }
+        $this->configureMailServer($user);
 
         $password = "12345";
         $employee = Employee::where('identification_number', '=', $data->identification_number)->get();
@@ -151,13 +146,7 @@ trait DocumentTrait
     protected function registerCustomer($data, $sendmail = false, $sendingcustomer = false)
     {
         $user = auth()->user();
-        if($user->validate_mail_server()){
-            \Config::set('mail.host', $user->mail_host);
-            \Config::set('mail.port', $user->mail_port);
-            \Config::set('mail.username', $user->mail_username);
-            \Config::set('mail.password', $user->mail_password);
-            \Config::set('mail.encryption', $user->mail_encryption);
-        }
+        $this->configureMailServer($user);
 
         $password = "12345";
         if($sendingcustomer)
@@ -229,8 +218,8 @@ trait DocumentTrait
             }
 
             $QRCode = $urlquery.'/document/searchqr?documentkey=-----CUFECUDE-----';
-            \Log::debug($data['company']);
-            \Log::debug($QRCode);
+//            \Log::debug($data['company']);
+//            \Log::debug($QRCode);
 
 //            if($data['typeDocument']['code'] === '01' or $data['typeDocument']['code'] === '02' or $data['typeDocument']['code'] === '03' or $data['typeDocument']['code'] === '20' or $data['typeDocument']['code'] === '35' or $data['typeDocument']['code'] === '24')
 //                if(isset($data['request']['tax_totals'][0]['tax_amount']))
