@@ -1,0 +1,46 @@
+ACTUALIZAR DESDE VERSION ANTERIOR DE API A VERSION 2025
+
+- Accesos SSH del vps donde se encuentra el apidian
+- Realizar un snapshot o copia de seguridad del vps
+- Acceso al repositorio apidian 2025 
+	https://gitlab.torresoftware.com/TorreSoftware/apidian2025.git
+
+- Ingresar por ssh al vps
+
+COMANDOS
+
+- sudo su
+- cd /var/www/html/apidian (O la ruta especifica del apidian)
+- nano .git/config
+	Se edita el archivo y debe quedar de la siguiente manera:
+
+[core]
+        repositoryformatversion = 0
+        filemode = true
+        bare = false
+        logallrefupdates = true
+[remote "origin"]
+        url = https://gitlab.torresoftware.com/TorreSoftware/apidian2025.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+        remote = origin
+        merge = refs/heads/master
+
+Guardar y salir con Ctrl+O y luego Ctrl+X
+
+- git pull origin master
+- git reset -- hard origin/master
+- rm composer.lock
+- composer install
+- php artisan config:cache && php artisan cache:clear
+- php artisan migrate --seed
+- chmod -R 777 storage
+- chmod -R 777 bootstrap/cache
+- chmod -R 777 vendor/mpdf/mpdf
+- php artisan storage:link
+- chmod 700 urn_on.sh
+- ./urn_on.sh
+- php artisan config:cache && php artisan config:clear && php artisan cache:clear
+
+
+
