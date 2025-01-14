@@ -32,6 +32,7 @@ use App\TypePlan;
 use App\Company;
 use App\Software;
 use App\Document;
+use App\DocumentPayroll;
 use App\ReceivedDocument;
 use App\Log;
 use App\Traits\DocumentTrait;
@@ -712,32 +713,57 @@ class ConfigurationController extends Controller
         DB::beginTransaction();
 
         try {
-            $initialdocument = Document::updateOrCreate([
-                'identification_number' => $request->identification_number,
-                'type_document_id' => $request->type_document_id,
-                'prefix' => $request->prefix,
-                'cufe' => 'cufe-initial-number',
-            ],
-            [
-                'number' => $request->number,
-                'state_document_id' => 1,
-                'customer' => '222222222222',
-                'xml' => 'INITIAL_NUMBER.XML',
-                'client_id' => '222222222222',
-                'client' => json_encode([]),
-                'currency_id' => 35,
-                'sale' => 0,
-                'total_discount' => 0,
-                'taxes' => json_encode([]),
-                'total_tax' => 0,
-                'subtotal' => 0,
-                'total' => 0,
-                'version_ubl_id' => 2,
-                'ambient_id' => 2,
-                'request_api' => json_encode([]),
-                'pdf' => 'INITIAL_NUMBER.PDF',
-                'date_issue' => date("Y-m-d H:i:s"),
-            ]);
+            if($request->type_document_id == "9" or $request->type_document_id == "9"){
+                $initialdocument = DocumentPayroll::updateOrCreate([
+                    'identification_number' => $request->identification_number,
+                    'type_document_id' => $request->type_document_id,
+                    'prefix' => $request->prefix,
+                    'cune' => 'cufe-initial-number',
+                ],
+                [
+                    'consecutive' => $request->number,
+                    'state_document_id' => 1,
+                    'employee_id' => '222222222222',
+                    'xml' => 'INITIAL_NUMBER.XML',
+                    'accrued_total' => 0,
+                    'deductions_total' => 0,
+                    'total_payroll' => 0,
+                    'total_tax' => 0,
+                    'subtotal' => 0,
+                    'total' => 0,
+                    'request_api' => json_encode([]),
+                    'pdf' => 'INITIAL_NUMBER.PDF',
+                    'date_issue' => date("Y-m-d H:i:s"),
+                ]);
+            }
+            else{
+                $initialdocument = Document::updateOrCreate([
+                    'identification_number' => $request->identification_number,
+                    'type_document_id' => $request->type_document_id,
+                    'prefix' => $request->prefix,
+                    'cufe' => 'cufe-initial-number',
+                ],
+                [
+                    'number' => $request->number,
+                    'state_document_id' => 1,
+                    'customer' => '222222222222',
+                    'xml' => 'INITIAL_NUMBER.XML',
+                    'client_id' => '222222222222',
+                    'client' => json_encode([]),
+                    'currency_id' => 35,
+                    'sale' => 0,
+                    'total_discount' => 0,
+                    'taxes' => json_encode([]),
+                    'total_tax' => 0,
+                    'subtotal' => 0,
+                    'total' => 0,
+                    'version_ubl_id' => 2,
+                    'ambient_id' => 2,
+                    'request_api' => json_encode([]),
+                    'pdf' => 'INITIAL_NUMBER.PDF',
+                    'date_issue' => date("Y-m-d H:i:s"),
+                ]);
+            }
 
             $initialdocument->save();
 

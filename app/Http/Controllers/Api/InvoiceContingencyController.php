@@ -1072,13 +1072,19 @@ class InvoiceContingencyController extends Controller
                 if($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->IsValid == 'true'){
                     $document->state_document_id = 1;
                     $document->save();
-                    $respuestas_dian[] = $respuestadian;
+//                    $respuestas_dian[] = $respuestadian;
                 }
+                $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes = null;
+                $respuestas_dian[] = [
+                    'document' => "{$document->prefix}-{$document->number}",
+                    'Envelope' => $respuestadian->Envelope,
+                ];
+
             }
             return [
                 'success' => true,
                 'message' => 'Envios de documentos de contingencia tipo 4 realizados con exito.',
-                'responses' => json_encode($respuestas_dian),
+                'responses' => $respuestas_dian,
             ];
         }
         else

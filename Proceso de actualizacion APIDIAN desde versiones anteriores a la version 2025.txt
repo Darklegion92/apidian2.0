@@ -11,6 +11,11 @@ COMANDOS
 
 - sudo su
 - cd /var/www/html/apidian (O la ruta especifica del apidian)
+  Nota: Si la instalacion esta en docker, se debe identificar el codigo o el nombre del repositorio con el comando docker ps y luego
+        Ingresar al repositorio con el comando docker exec -ti codigo o nombre del repositorio bash
+
+	Ejemplo: docker exec -ti 754323428 bash (Donde 754323428 seria el id del contenedor)
+
 - nano .git/config
 	Se edita el archivo y debe quedar de la siguiente manera:
 
@@ -29,7 +34,16 @@ COMANDOS
 Guardar y salir con Ctrl+O y luego Ctrl+X
 
 - git pull origin master
-- git reset -- hard origin/master
+	NOTAS: Si al ejecutar el comando, aparece un mensaj diciendo que debes identificarte en git, ejecutar los comandos:
+		- git config --global user.name "John Doe"
+		- git config --global user.email johndoe@example.com
+	       Cambiando el nombre y el correo.
+	       
+	       Si al ejecutar el comando git pull origin master aparece un mensaje de error indicando que hay cambios en algunos archivos
+	       que se perderan, ejecutar el comando: git reset --hard pero tener en cuenta que los cambios que tal vez se hayan realizado
+	       intencionalmente se perderan, si no desea perderlos, debe guardarlos.  			       
+	
+- git reset --hard origin/master
 - rm composer.lock
 - composer install
 - php artisan config:cache && php artisan cache:clear
