@@ -38,12 +38,12 @@
             <div id="empresa-header1">
                 @if(isset($request->ivaresponsable))
                     @if($request->ivaresponsable != $company->type_regime->name)
-                        NIT: {{$company->identification_number}}-{{$company->dv}} - {{$company->type_regime->name}} - {{$request->ivaresponsable}} - Obligación: {{$company->type_liability->name}}
+                        NIT: {{$company->identification_number}}-{{$company->dv}} - Regimen: {{$company->type_regime->name}} - Obligación: {{$company->type_liability->name}}
                     @else
-                        NIT: {{$company->identification_number}}-{{$company->dv}} - {{$company->type_regime->name}} - Obligación: {{$company->type_liability->name}}
+                        NIT: {{$company->identification_number}}-{{$company->dv}} - Regimen: {{$company->type_regime->name}} - Obligación: {{$company->type_liability->name}}
                     @endif
                 @else
-                    NIT: {{$company->identification_number}}-{{$company->dv}} - {{$company->type_regime->name}} - Obligación: {{$company->type_liability->name}}
+                    NIT: {{$company->identification_number}}-{{$company->dv}} - Regimen: {{$company->type_regime->name}} - Obligación: {{$company->type_liability->name}}
                 @endif
                 @if(isset($request->nombretipodocid))
                     Tipo Documento ID: {{$request->nombretipodocid}}<br>

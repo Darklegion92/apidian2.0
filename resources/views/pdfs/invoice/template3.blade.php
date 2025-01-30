@@ -39,7 +39,8 @@
     <!-- Información Adicional y Condiciones -->
     <tr>
         <td style="text-align: center;">
-            <strong>{{$company->type_regime->name}}</strong><br>
+            <strong>Regimen: {{$company->type_regime->name}}</strong><br>
+            <strong>Obligacion: {{$company->type_liability->name}}</strong><br>
             @if(isset($request->nombretipodocid))
                 <strong>Tipo Documento ID: {{$request->nombretipodocid}}</strong><br>
             @endif
