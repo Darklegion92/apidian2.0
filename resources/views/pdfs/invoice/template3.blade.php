@@ -31,7 +31,7 @@
     <tr>
         <td style="text-align: center;">
             <strong>FACTURA ELECTRONICA DE VENTA {{$resolution->prefix}} - {{$request->number}}</strong><br>
-            <strong>Fecha Emisión: {{$date}} - Fecha Validación DIAN: {{$date}}</strong><br>
+            <strong>Fecha Em.: {{$date}} - Fecha Val. DIAN: {{$date}}</strong><br>
             <strong>Hora Validación DIAN: {{$time}}</strong><br>
         </td>
     </tr>
@@ -39,9 +39,7 @@
     <!-- Información Adicional y Condiciones -->
     <tr>
         <td style="text-align: center;">
-            @if(isset($request->ivaresponsable) && $request->ivaresponsable != $company->type_regime->name)
-                <strong>{{$company->type_regime->name}} - {{$request->ivaresponsable}}</strong><br>
-            @endif
+            <strong>{{$company->type_regime->name}}</strong><br>
             @if(isset($request->nombretipodocid))
                 <strong>Tipo Documento ID: {{$request->nombretipodocid}}</strong><br>
             @endif

@@ -94,26 +94,28 @@ class SendEmailController extends Controller
 
         $filename = str_replace('pos', 'ad', str_replace('ttr', 'ad', str_replace('srv', 'ad', str_replace('nd', 'ad', str_replace('nc', 'ad', str_replace('fv', 'ad', $this->getTag($rptafe, 'XmlFileName')->nodeValue))))));
         try{
-            if(!$request->only_send_to_cc_list){
-                if ($GuardarEn){
-                    if($request->base64graphicrepresentation)
-                        Mail::to($email)->send(new InvoiceMail($document, $customer, $company, $GuardarEn, $request->base64graphicrepresentation, $filename, $ShowAcceptRejectButtons, $request));
-                    else
-                        Mail::to($email)->send(new InvoiceMail($document, $customer, $company, $GuardarEn, FALSE, $filename, $ShowAcceptRejectButtons, $request));
+            if(!$this->emailIsInBlackList($email)){
+                if(!$request->only_send_to_cc_list){
+                    if ($GuardarEn){
+                        if($request->base64graphicrepresentation)
+                            Mail::to($email)->send(new InvoiceMail($document, $customer, $company, $GuardarEn, $request->base64graphicrepresentation, $filename, $ShowAcceptRejectButtons, $request));
+                        else
+                            Mail::to($email)->send(new InvoiceMail($document, $customer, $company, $GuardarEn, FALSE, $filename, $ShowAcceptRejectButtons, $request));
+                    }
+                    else{
+                        if($request->base64graphicrepresentation)
+                            Mail::to($email)->send(new InvoiceMail($document, $customer, $company, FALSE, $request->base64graphicrepresentation, $filename, $ShowAcceptRejectButtons, $request));
+                        else
+                            Mail::to($email)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, $ShowAcceptRejectButtons, $request));
+                    }
                 }
-                else{
-                    if($request->base64graphicrepresentation)
-                        Mail::to($email)->send(new InvoiceMail($document, $customer, $company, FALSE, $request->base64graphicrepresentation, $filename, $ShowAcceptRejectButtons, $request));
-                    else
-                        Mail::to($email)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, $ShowAcceptRejectButtons, $request));
+                if($request->email_cc_list){
+                    foreach($request->email_cc_list as $email)
+                        if($request->base64graphicrepresentation)
+                            Mail::to($email)->send(new InvoiceMail($document, $customer, $company, FALSE, $request->base64graphicrepresentation, $filename, FALSE, $request));
+                        else
+                            Mail::to($email)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
                 }
-            }
-            if($request->email_cc_list){
-                foreach($request->email_cc_list as $email)
-                    if($request->base64graphicrepresentation)
-                        Mail::to($email)->send(new InvoiceMail($document, $customer, $company, FALSE, $request->base64graphicrepresentation, $filename, FALSE, $request));
-                    else
-                        Mail::to($email)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
             }
             $document[0]->send_email_success = 1;
             if(is_null($document[0]->send_email_date_time))
@@ -181,11 +183,16 @@ class SendEmailController extends Controller
         $filename = str_replace('nd', 'ad', str_replace('nc', 'ad', str_replace('fv', 'ad', $this->getTag($rptafe, 'XmlFileName')->nodeValue)));
 //        return $user->email;
         if($filename <> ''){
-            if(isset($request->customerEmail))
-                Mail::to($request->customerEmail)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
-            else
-                Mail::to($customer->email)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
-            Mail::to($user->email)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+            if(isset($request->customerEmail)){
+                if(!$this->emailIsInBlackList($request->customerEmail))
+                    Mail::to($request->customerEmail)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+            }
+            else{
+                if(!$this->emailIsInBlackList($customer->email))
+                    Mail::to($customer->email)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+            }
+            if(!$this->emailIsInBlackList($user->email))
+                Mail::to($user->email)->send(new InvoiceMail($document, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
         }
         if($ShowView == 'YES')
 //            return redirect('/homecustomers');
@@ -257,12 +264,17 @@ class SendEmailController extends Controller
         $filename = str_replace('na', 'ad', (str_replace('ni', 'ad', str_replace('nd', 'ad', str_replace('nc', 'ad', str_replace('fv', 'ad', $this->getTag($rptafe, 'XmlFileName')->nodeValue))))));
 //        return $user->email;
         if($filename <> ''){
-            if(!$request->only_send_to_cc_list)
-                Mail::to($employee->email)->send(new PayrollMail($document, $employee, $company, FALSE, $filename, $request));
-            Mail::to($user->email)->send(new PayrollMail($document, $employee, $company, FALSE, $filename, $request));
+            if(!$request->only_send_to_cc_list){
+                if(!$this->emailIsInBlackList($employee->email))
+                    Mail::to($employee->email)->send(new PayrollMail($document, $employee, $company, FALSE, $filename, $request));
+            }
+            if(!$this->emailIsInBlackList($user->email))
+                Mail::to($user->email)->send(new PayrollMail($document, $employee, $company, FALSE, $filename, $request));
             if($request->email_cc_list){
-                foreach($request->email_cc_list as $email)
-                    Mail::to($email)->send(new PayrollMail($document, $employee, $company, FALSE, $filename, $request));
+                foreach($request->email_cc_list as $email){
+                    if(!$this->emailIsInBlackList($email))
+                        Mail::to($email)->send(new PayrollMail($document, $employee, $company, FALSE, $filename, $request));
+                }
             }
         }
         if($ShowView == 'YES')
@@ -296,7 +308,8 @@ class SendEmailController extends Controller
     public function SendEmailPasswordCustomer(Request $request)
     {
         $customer = Customer::findOrFail($request->identification_number);
-        Mail::to($customer->email)->send(new PasswordCustomerMail($customer));
+        if(!$this->emailIsInBlackList($customer->email))
+            Mail::to($customer->email)->send(new PasswordCustomerMail($customer));
         return [
             'message' => 'Correo electronico para credenciales, enviado con exito.',
             'success' => 'true',
@@ -340,7 +353,8 @@ class SendEmailController extends Controller
                 ];
             }
 
-            Mail::to($email)->send(new DocumentPayrollEmail($user, $document));
+            if(!$this->emailIsInBlackList($email))
+                Mail::to($email)->send(new DocumentPayrollEmail($user, $document));
 
             return [
                 'success' => true,

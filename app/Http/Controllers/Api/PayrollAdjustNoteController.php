@@ -307,9 +307,12 @@ class PayrollAdjustNoteController extends Controller
                                                     ->where('state_document_id', '=', 1)->get();
                         if(count($payroll) > 0){
                             try{
-                                Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
-                                if(isset($request->sendmailtome) && $request->sendmailtome == true)
-                                    Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                if(!$this->emailIsInBlackList($worker->email))
+                                    Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                if(isset($request->sendmailtome) && $request->sendmailtome == true){
+                                    if(!$this->emailIsInBlackList($user->email))
+                                        Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                }
                             } catch (\Exception $m) {
                                 \Log::debug($m->getMessage());
                             }

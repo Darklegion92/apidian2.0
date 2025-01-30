@@ -419,12 +419,17 @@ class SupportDocumentController extends Controller
                         if($request->sendmail){
                             if(count($invoice) > 0 && $seller->company->identification_number != '222222222222'){
                                 try{
-                                    Mail::to($seller->email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, TRUE, $request));
-                                    if($request->sendmailtome)
-                                        Mail::to($user->email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                    if(!$this->emailIsInBlackList($seller->email))
+                                        Mail::to($seller->email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, TRUE, $request));
+                                    if($request->sendmailtome){
+                                        if(!$this->emailIsInBlackList($user->email))
+                                            Mail::to($user->email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                    }
                                     if($request->email_cc_list){
-                                        foreach($request->email_cc_list as $email)
-                                            Mail::to($email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                        foreach($request->email_cc_list as $email){
+                                            if(!$this->emailIsInBlackList($email))
+                                                Mail::to($email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                        }
                                     }
                                     $invoice[0]->send_email_success = 1;
                                     $invoice[0]->send_email_date_time = Carbon::now()->format('Y-m-d H:i');
@@ -517,12 +522,17 @@ class SupportDocumentController extends Controller
                         if($request->sendmail){
                             if(count($invoice) > 0 && $seller->company->identification_number != '222222222222'){
                                 try{
-                                    Mail::to($seller->email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, TRUE));
-                                    if($request->sendmailtome)
-                                        Mail::to($user->email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, FALSE));
+                                    if(!$this->emailIsInBlackList($seller->email))
+                                        Mail::to($seller->email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, TRUE));
+                                    if($request->sendmailtome){
+                                        if(!$this->emailIsInBlackList($user->email))
+                                            Mail::to($user->email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, FALSE));
+                                    }
                                     if($request->email_cc_list){
-                                        foreach($request->email_cc_list as $email)
-                                            Mail::to($email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, FALSE));
+                                        foreach($request->email_cc_list as $email){
+                                            if(!$this->emailIsInBlackList($email))
+                                                Mail::to($email)->send(new InvoiceMail($invoice, $seller, $company, FALSE, FALSE, $filename, FALSE));
+                                        }
                                     }
                                     $invoice[0]->send_email_success = 1;
                                     $invoice[0]->send_email_date_time = Carbon::now()->format('Y-m-d H:i');

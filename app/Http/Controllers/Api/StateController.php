@@ -242,12 +242,17 @@ class StateController extends Controller
                                                    ->where('state_document_id', '=', 1)->get();
                                 if(count($invoice) > 0 && $customer->identification_number != '222222222222'){
                                     try{
-                                        Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename));
-                                        if($request->senmailtome)
-                                            Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename));
+                                        if(!$this->emailIsInBlackList($customer->email))
+                                            Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename));
+                                        if($request->senmailtome){
+                                            if(!$this->emailIsInBlackList($user->email))
+                                                Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename));
+                                        }
                                         if($request->email_cc_list){
-                                            foreach($request->email_cc_list as $email)
-                                                Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename));
+                                            foreach($request->email_cc_list as $email){
+                                                if(!$this->emailIsInBlackList($email))
+                                                    Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename));
+                                            }
                                         }
                                         $invoice[0]->send_email_success = 1;
                                         $invoice[0]->save();
@@ -278,9 +283,12 @@ class StateController extends Controller
                                                             ->where('state_document_id', '=', 1)->get();
                                 if(count($payroll) > 0){
                                     try{
-                                        Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
-                                        if($request->sendmailtome)
-                                            Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                        if(!$this->emailIsInBlackList($worker->email))
+                                            Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                        if($request->sendmailtome){
+                                            if(!$this->emailIsInBlackList($user->email))
+                                                Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                        }
                                     } catch (\Exception $m) {
                                         \Log::debug($m->getMessage());
                                     }
@@ -442,12 +450,17 @@ class StateController extends Controller
                                                    ->where('state_document_id', '=', 1)->get();
                                 if(count($invoice) > 0 && $customer->identification_number != '222222222222'){
                                     try{
-                                        Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE));
-                                        if($request->sendmailtome)
-                                            Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE));
+                                        if(!$this->emailIsInBlackList($customer->email))
+                                            Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE));
+                                        if($request->sendmailtome){
+                                            if(!$this->emailIsInBlackList($user->email))
+                                                Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE));
+                                        }
                                         if($request->email_cc_list){
-                                            foreach($request->email_cc_list as $email)
-                                                Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE));
+                                            foreach($request->email_cc_list as $email){
+                                                if(!$this->emailIsInBlackList($email))
+                                                    Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE));
+                                            }
                                         }
                                         $invoice[0]->send_email_success = 1;
                                         $invoice[0]->save();
@@ -478,9 +491,12 @@ class StateController extends Controller
                                                             ->where('state_document_id', '=', 1)->get();
                                 if(count($payroll) > 0){
                                     try{
-                                        Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
-                                        if($request->sendmailtome)
-                                            Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                        if(!$this->emailIsInBlackList($worker->email))
+                                            Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                        if($request->sendmailtome){
+                                            if(!$this->emailIsInBlackList($user->email))
+                                                Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                        }
                                     } catch (\Exception $m) {
                                         \Log::debug($m->getMessage());
                                     }
@@ -710,12 +726,17 @@ class StateController extends Controller
                                                    ->where('state_document_id', '=', 1)->get();
                                 if(count($invoice) > 0 && $customer->company->identification_number != '222222222222'){
                                     try{
-                                        Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename, TRUE, $request));
-                                        if($request->sendmailtome)
-                                            Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename, FALSE, $request));
+                                        if(!$this->emailIsInBlackList($customer->email))
+                                            Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename, TRUE, $request));
+                                        if($request->sendmailtome){
+                                            if(!$this->emailIsInBlackList($user->email))
+                                                Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename, FALSE, $request));
+                                        }
                                         if($request->email_cc_list){
-                                            foreach($request->email_cc_list as $email)
-                                                Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename, FALSE, $request));
+                                            foreach($request->email_cc_list as $email){
+                                                if(!$this->emailIsInBlackList($email))
+                                                    Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, $GuardarEn, FALSE, FALSE, $filename, FALSE, $request));
+                                            }
                                         }
                                         $invoice[0]->send_email_success = 1;
                                         $invoice[0]->save();
@@ -746,9 +767,12 @@ class StateController extends Controller
                                                             ->where('state_document_id', '=', 1)->get();
                                 if(count($payroll) > 0){
                                     try{
-                                        Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
-                                        if($request->sendmailtome)
-                                            Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                        if(!$this->emailIsInBlackList($worker->email))
+                                            Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                        if($request->sendmailtome){
+                                            if(!$this->emailIsInBlackList($user->email))
+                                                Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                        }
                                     } catch (\Exception $m) {
                                         \Log::debug($m->getMessage());
                                     }
@@ -926,12 +950,17 @@ class StateController extends Controller
                                                        ->where('state_document_id', '=', 1)->get();
                                     if((count($invoice) > 0 && $customer->identification_number != '222222222222')){
                                         try{
-                                            Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
-                                            if($request->sendmailtome)
-                                                Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                            if(!$this->emailIsInBlackList($customer->email))
+                                                Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
+                                            if($request->sendmailtome){
+                                                if(!$this->emailIsInBlackList($user->email))
+                                                    Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                            }
                                             if($request->email_cc_list){
-                                                foreach($request->email_cc_list as $email)
-                                                    Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                                foreach($request->email_cc_list as $email){
+                                                    if(!$this->emailIsInBlackList($email))
+                                                        Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                                }
                                             }
                                             $invoice[0]->send_email_success = 1;
                                             $invoice[0]->save();
@@ -962,9 +991,12 @@ class StateController extends Controller
                                                                 ->where('state_document_id', '=', 1)->get();
                                     if(count($payroll) > 0){
                                         try{
-                                            Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
-                                            if($request->sendmailtome)
-                                                Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                            if(!$this->emailIsInBlackList($worker->email))
+                                                Mail::to($worker->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                            if($request->sendmailtome){
+                                                if(!$this->emailIsInBlackList($user->email))
+                                                    Mail::to($user->email)->send(new PayrollMail($payroll, $worker, $company, FALSE, $filename, $request));
+                                            }
                                         } catch (\Exception $m) {
                                             \Log::debug($m->getMessage());
                                         }

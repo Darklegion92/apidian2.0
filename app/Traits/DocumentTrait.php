@@ -22,6 +22,7 @@ use ubl21dian\Sign;
 use App\TypeDocument;
 use App\TypeLiability;
 use App\TypeOperation;
+use App\EmailBlackList;
 use Mpdf\HTMLParserMode;
 use App\Mail\InvoiceMail;
 use App\Custom\zipfileDIAN;
@@ -115,6 +116,27 @@ trait DocumentTrait
             return $tag->item($item);
     }
 
+    protected function emailIsInBlackList($email)
+    {
+        try {
+            $emailInBlackList = EmailBlackList::where('email', $email)->first();
+            if ($emailInBlackList)
+                if ($emailInBlackList->banned)
+                    return true;
+                else
+                    return false;
+            else
+                return false;
+        }
+        catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Internal Server Error',
+                'payload' => $e->getMessage(),
+            ];
+        }
+    }
+
     protected function registerEmployee($data, $sendmail = false)
     {
         $user = auth()->user();
@@ -139,8 +161,10 @@ trait DocumentTrait
                                              ]);
 
         if($sendmail && $data->identification_number != '222222222222' && isset($data->email) && ($data->email != ''))
-            if(\Carbon\Carbon::now()->format('Y-m-d H:i') === date_format(date_create($employee->created_at), 'Y-m-d H:i'))
-                Mail::to($employee->email)->send(new PasswordEmployeeMail($employee, $password));
+            if(\Carbon\Carbon::now()->format('Y-m-d H:i') === date_format(date_create($employee->created_at), 'Y-m-d H:i')){
+                if(!$this->emailIsInBlackList($employee->email))
+                    Mail::to($employee->email)->send(new PasswordEmployeeMail($employee, $password));
+            }
     }
 
     protected function registerCustomer($data, $sendmail = false, $sendingcustomer = false)
@@ -173,8 +197,10 @@ trait DocumentTrait
                                                   'email' => $data->email
                                                  ]);
             if($sendmail && $data->identification_number != '222222222222')
-                if(\Carbon\Carbon::now()->format('Y-m-d H:i') === date_format(date_create($customer->created_at), 'Y-m-d H:i'))
-                    Mail::to($customer->email)->send(new PasswordCustomerMail($customer, $password));
+                if(\Carbon\Carbon::now()->format('Y-m-d H:i') === date_format(date_create($customer->created_at), 'Y-m-d H:i')){
+                    if(!$this->emailIsInBlackList($customer->email))
+                        Mail::to($customer->email)->send(new PasswordCustomerMail($customer, $password));
+                }
         }
         else{
             $customer = Customer::updateOrCreate(['identification_number' => $data->company->identification_number],
@@ -187,8 +213,10 @@ trait DocumentTrait
                                                  ]);
 
             if($sendmail && $data->company->identification_number != '222222222222')
-                if(\Carbon\Carbon::now()->format('Y-m-d H:i') === date_format(date_create($customer->created_at), 'Y-m-d H:i'))
-                    Mail::to($customer->email)->send(new PasswordCustomerMail($customer, $password));
+                if(\Carbon\Carbon::now()->format('Y-m-d H:i') === date_format(date_create($customer->created_at), 'Y-m-d H:i')){
+                    if(!$this->emailIsInBlackList($customer->email))
+                        Mail::to($customer->email)->send(new PasswordCustomerMail($customer, $password));
+                }
         }
     }
 
@@ -321,6 +349,7 @@ trait DocumentTrait
         else
           $template_pdf = env("GRAPHIC_REPRESENTATION_TEMPLATE", 2);
         ini_set("pcre.backtrack_limit", "5000000");
+        ini_set('memory_limit', '-1');
         $QRStr = '';
 //        try {
             define("DOMPDF_ENABLE_REMOTE", true);
@@ -1225,7 +1254,8 @@ trait DocumentTrait
         $company    = $data['user'];
         $customer   = $data['customer'];
 
-        $message = Mail::to($customer->email)->send(new InvoiceMail($data, $filename));
+        if(!$this->emailIsInBlackList($customer->email))
+            $message = Mail::to($customer->email)->send(new InvoiceMail($data, $filename));
 
         return $message;
     }

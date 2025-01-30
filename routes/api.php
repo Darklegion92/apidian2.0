@@ -68,6 +68,12 @@ Route::middleware('auth:api')->group(function () {
     // UBL 2.1
     Route::prefix('/ubl2.1')->group(function () {
         // Xml Document
+        Route::prefix('/emailblacklist')->group(function () {
+	        Route::post('/add', 'Api\EmailBlackListController@add');
+	        Route::post('/delete', 'Api\EmailBlackListController@delete');
+        });
+
+        // Xml Document
         Route::prefix('/xml')->group(function () {
 	        Route::post('/document/{trackId}/{GuardarEn?}', 'Api\XmlDocumentController@document');
         });

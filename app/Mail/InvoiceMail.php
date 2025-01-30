@@ -140,7 +140,7 @@ class InvoiceMail extends Mailable
                                                     ->attach($nameZIP);
                 }
                 else{
-                    \Log::debug(storage_path("app/public/{$this->company->identification_number}/{$this->invoice[0]->pdf}"));
+//                    \Log::debug(storage_path("app/public/{$this->company->identification_number}/{$this->invoice[0]->pdf}"));
                     if($this->filename)
                         $nameZIP = $this->zipEmail(storage_path("app/public/{$this->company->identification_number}/{$this->filename}.xml"), storage_path("app/public/{$this->company->identification_number}/{$this->invoice[0]->pdf}"));
                     else

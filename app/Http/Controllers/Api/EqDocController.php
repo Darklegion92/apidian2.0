@@ -440,15 +440,23 @@ class EqDocController extends Controller
                         if($request->sendmail){
                             if((count($invoice) > 0 && $customer->company->identification_number != '222222222222') || (count($invoice) > 0 && isset($request->email_pos_customer))){
                                 try{
-                                    if(isset($request->email_pos_customer))
-                                        Mail::to($request->email_pos_customer)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
-                                    else
-                                        Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
-                                    if($request->sendmailtome)
-                                        Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                    if(isset($request->email_pos_customer)){
+                                        if(!$this->emailIsInBlackList($request->email_pos_customer))
+                                            Mail::to($request->email_pos_customer)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
+                                    }
+                                    else{
+                                        if(!$this->emailIsInBlackList($customer->email))
+                                            Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
+                                    }
+                                    if($request->sendmailtome){
+                                        if(!$this->emailIsInBlackList($user->email))
+                                            Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                    }
                                     if($request->email_cc_list){
-                                        foreach($request->email_cc_list as $email)
-                                            Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                        foreach($request->email_cc_list as $email){
+                                            if(!$this->emailIsInBlackList($email))
+                                                Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                        }
                                     }
                                     $invoice[0]->send_email_success = 1;
                                     $invoice[0]->send_email_date_time = Carbon::now()->format('Y-m-d H:i');
@@ -542,15 +550,23 @@ class EqDocController extends Controller
                         if($request->sendmail){
                             if((count($invoice) > 0 && $customer->company->identification_number != '222222222222') || (count($invoice) > 0 && isset($request->email_pos_customer))){
                                 try{
-                                    if(isset($request->email_pos_customer))
-                                        Mail::to($request->email_pos_customer)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
-                                    else
-                                        Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
-                                    if($request->sendmailtome)
-                                        Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                    if(isset($request->email_pos_customer)){
+                                        if(!$this->emailIsInBlackList($request->email_pos_customer))
+                                            Mail::to($request->email_pos_customer)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
+                                    }
+                                    else{
+                                        if(!$this->emailIsInBlackList($customer->email))
+                                            Mail::to($customer->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, TRUE, $request));
+                                    }
+                                    if($request->sendmailtome){
+                                        if(!$this->emailIsInBlackList($user->email))
+                                            Mail::to($user->email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                    }
                                     if($request->email_cc_list){
-                                        foreach($request->email_cc_list as $email)
-                                            Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                        foreach($request->email_cc_list as $email){
+                                            if(!$this->emailIsInBlackList($email))
+                                                Mail::to($email)->send(new InvoiceMail($invoice, $customer, $company, FALSE, FALSE, $filename, FALSE, $request));
+                                        }
                                     }
                                     $invoice[0]->send_email_success = 1;
                                     $invoice[0]->send_email_date_time = Carbon::now()->format('Y-m-d H:i');

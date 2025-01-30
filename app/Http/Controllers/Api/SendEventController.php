@@ -733,12 +733,17 @@ class SendEventController extends Controller
                             if($request->sendmail){
                                 if(count($invoice) > 0){
                                     try{
-                                        Mail::to($user->email)->send(new EventMail($invoice, $sender, $user, $event, $request, $filename));
-                                        if($request->sendmailtome)
-                                            Mail::to($sender->email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                        if(!$this->emailIsInBlackList($user->email))
+                                            Mail::to($user->email)->send(new EventMail($invoice, $sender, $user, $event, $request, $filename));
+                                        if($request->sendmailtome){
+                                            if(!$this->emailIsInBlackList($sender->email))
+                                                Mail::to($sender->email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                        }
                                         if($request->email_cc_list){
-                                            foreach($request->email_cc_list as $email)
-                                                Mail::to($email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                            foreach($request->email_cc_list as $email){
+                                                if(!$this->emailIsInBlackList($email))
+                                                    Mail::to($email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                            }
                                         }
                                     } catch (\Exception $m) {
                                         \Log::debug($m->getMessage());
@@ -838,12 +843,17 @@ class SendEventController extends Controller
                             if($request->sendmail){
                                 if(count($invoice) > 0){
                                     try{
-                                        Mail::to($user->email)->send(new EventMail($invoice, $sender, $user, $event, $request, $filename));
-                                        if($request->sendmailtome)
-                                            Mail::to($sender->email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                        if(!$this->emailIsInBlackList($user->email))
+                                            Mail::to($user->email)->send(new EventMail($invoice, $sender, $user, $event, $request, $filename));
+                                        if($request->sendmailtome){
+                                            if(!$this->emailIsInBlackList($sender->email))
+                                                Mail::to($sender->email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                        }
                                         if($request->email_cc_list){
-                                            foreach($request->email_cc_list as $email)
-                                                Mail::to($email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                            foreach($request->email_cc_list as $email){
+                                                if(!$this->emailIsInBlackList($email))
+                                                    Mail::to($email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                            }
                                         }
                                     } catch (\Exception $m) {
                                         \Log::debug($m->getMessage());
@@ -1524,12 +1534,17 @@ class SendEventController extends Controller
                             if($request->sendmail){
                                 if(count($invoice) > 0){
                                     try{
-                                        Mail::to($user->email)->send(new EventMail($invoice, $sender, $user, $event, $request, $filename));
-                                        if($request->sendmailtome)
-                                            Mail::to($sender->email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                        if(!$this->emailIsInBlackList($user->email))
+                                            Mail::to($user->email)->send(new EventMail($invoice, $sender, $user, $event, $request, $filename));
+                                        if($request->sendmailtome){
+                                            if(!$this->emailIsInBlackList($sender->email))
+                                                Mail::to($sender->email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                        }
                                         if($request->email_cc_list){
-                                            foreach($request->email_cc_list as $email)
-                                                Mail::to($email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                            foreach($request->email_cc_list as $email){
+                                                if(!$this->emailIsInBlackList($email))
+                                                    Mail::to($email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                            }
                                         }
                                     } catch (\Exception $m) {
                                         \Log::debug($m->getMessage());
@@ -1631,12 +1646,17 @@ class SendEventController extends Controller
                             if($request->sendmail){
                                 if(count($invoice) > 0){
                                     try{
-                                        Mail::to($user->email)->send(new EventMail($invoice, $sender, $user, $event, $request, $filename));
-                                        if($request->sendmailtome)
-                                            Mail::to($sender->email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                        if(!$this->emailIsInBlackList($user->email))
+                                            Mail::to($user->email)->send(new EventMail($invoice, $sender, $user, $event, $request, $filename));
+                                        if($request->sendmailtome){
+                                            if(!$this->emailIsInBlackList($sender->email))
+                                                Mail::to($sender->email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                        }
                                         if($request->email_cc_list){
-                                            foreach($request->email_cc_list as $email)
-                                                Mail::to($email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                            foreach($request->email_cc_list as $email){
+                                                if(!$this->emailIsInBlackList($email))
+                                                    Mail::to($email)->send(new EventMail($invoice, $sender, $user,  $event, $request, $filename));
+                                            }
                                         }
                                     } catch (\Exception $m) {
                                         \Log::debug($m->getMessage());
