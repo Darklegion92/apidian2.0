@@ -213,7 +213,8 @@
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">Cantidad</th>
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">UM</th>
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">Val. Unit</th>
-                <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">IVA/IC</th>
+                <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">IVA/INC</th>
+                <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">IC</th>
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">Dcto</th>
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">%</th>
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">Val. Item</th>
@@ -280,6 +281,16 @@
                             @endif
                         @else
                             <td class="text-right">E</td>
+                        @endif
+
+                        @if(isset($item['tax_totals']))
+                            @if(isset($item['tax_totals'][1]['tax_amount']))
+                                <td class="text-right">{{number_format($item['tax_totals'][1]['tax_amount'] / $item['invoiced_quantity'], 2)}}</td>
+                            @else
+                                <td class="text-right">{{number_format(0, 2)}}</td>
+                            @endif
+                        @else
+                            <td class="text-right">N/A</td>
                         @endif
 
                         @if(isset($item['allowance_charges']))
