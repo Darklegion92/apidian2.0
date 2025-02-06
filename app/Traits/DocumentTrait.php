@@ -352,7 +352,8 @@ trait DocumentTrait
         ini_set('memory_limit', '-1');
         $QRStr = '';
 //        try {
-            define("DOMPDF_ENABLE_REMOTE", true);
+            if (!defined('DOMPDF_ENABLE_REMOTE'))
+                define("DOMPDF_ENABLE_REMOTE", true);
             if(isset($request->establishment_logo)){
                 $filenameLogo   = storage_path("app/public/{$company->identification_number}/alternate_{$company->identification_number}{$company->dv}.jpg");
                 $this->storeLogo($request->establishment_logo);
@@ -739,7 +740,8 @@ trait DocumentTrait
         ini_set("pcre.backtrack_limit", "5000000");
         $QRStr = '';
 //        try {
-            define("DOMPDF_ENABLE_REMOTE", true);
+            if (!defined('DOMPDF_ENABLE_REMOTE'))
+                define("DOMPDF_ENABLE_REMOTE", true);
             if(isset($request->establishment_logo)){
                 $filenameLogo   = storage_path("app/public/{$company->identification_number}/alternate_{$company->identification_number}{$company->dv}.jpg");
                 $this->storeLogo($request->establishment_logo);
@@ -801,7 +803,8 @@ trait DocumentTrait
         ini_set("pcre.backtrack_limit", "5000000");
         $QRStr = '';
 //        try {
-            define("DOMPDF_ENABLE_REMOTE", true);
+            if (!defined('DOMPDF_ENABLE_REMOTE'))
+                define("DOMPDF_ENABLE_REMOTE", true);
             if(isset($request->establishment_logo)){
                 $filenameLogo   = storage_path("app/public/{$company->identification_number}/alternate_{$company->identification_number}{$company->dv}.jpg");
                 $this->storeLogo($request->establishment_logo);
@@ -1653,5 +1656,19 @@ trait DocumentTrait
             $backoff *= 2; // Duplicar el tiempo de espera para el próximo intento
         } while ($attempt < $retries);
         return false; // Regresa false si todos los intentos fallan
+    }
+
+    function rmDir_rf($carpeta)
+    {
+       foreach(glob($carpeta . "/*") as $archivos_carpeta){
+           if (is_dir($archivos_carpeta)){
+               $this->rmDir_rf($archivos_carpeta);
+            }
+            else{
+                unlink($archivos_carpeta);
+            }
+        }
+        if(file_exists($carpeta))
+            rmdir($carpeta);
     }
 }

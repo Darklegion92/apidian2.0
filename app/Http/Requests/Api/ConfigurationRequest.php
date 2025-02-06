@@ -82,6 +82,11 @@ class ConfigurationRequest extends FormRequest
             'mail_encryption' => 'nullable|required_with:mail_host,mail_port,mail_username,mail_password|string',
             'mail_from_address' => 'nullable|required_with:mail_host,mail_port,mail_username,mail_password,mail_encryption|string',
             'mail_from_name' => 'nullable|required_with:mail_host,mail_port,mail_username,mail_password,mail_encryption|string',
+            'imap_server' => 'nullable|string',
+            'imap_user' => 'nullable|required_with:imap_server,imap_user,imap_password,imap_encryption|string',
+            'imap_password' => 'nullable|required_with:imap_server,imap_user,imap_password,imap_encryption|string',
+            'imap_encryption' => 'nullable|required_with:imap_server,imap_user,imap_password,imap_encryption|string',
+            'imap_port' => 'nullable|required_with:imap_server,imap_user,imap_password,imap_encryption|string',
         ];
     }
 }

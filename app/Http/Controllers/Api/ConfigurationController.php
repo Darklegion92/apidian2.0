@@ -234,6 +234,11 @@ class ConfigurationController extends Controller
                     'start_plan_date3' => $start_plan_date3,
                     'start_plan_date4' => $start_plan_date4,
                     'absolut_start_plan_date' => $absolut_start_plan_date,
+                    'imap_server' => $request->imap_server ?? "",
+                    'imap_user' => $request->imap_user ?? "",
+                    'imap_password' => $request->imap_password ?? "",
+                    'imap_encryption' => $request->imap_encryption ?? "",
+                    'imap_port' => $request->imap_port ?? "",
                 ]);
 
                 $user->save();
@@ -328,6 +333,11 @@ class ConfigurationController extends Controller
                     'start_plan_date3' => $start_plan_date3,
                     'start_plan_date4' => $start_plan_date4,
                     'absolut_start_plan_date' => $absolut_start_plan_date,
+                    'imap_server' => $request->imap_server,
+                    'imap_user' => $request->imap_user,
+                    'imap_password' => $request->imap_password,
+                    'imap_encryption' => $request->imap_encryption,
+                    'imap_port' => $request->imap_port,
                 ]);
                 $user->save();
             }

@@ -21,7 +21,7 @@ class Company extends Model
      * @var array
      */
     protected $fillable = [
-        'user_id', 'identification_number', 'dv', 'language_id', 'tax_id', 'type_environment_id', 'payroll_type_environment_id', 'eqdocs_type_environment_id', 'type_operation_id', 'type_document_identification_id', 'country_id', 'type_currency_id', 'type_organization_id', 'type_regime_id', 'type_liability_id', 'municipality_id', 'merchant_registration', 'address', 'phone', 'password', 'newpassword', 'type_plan_id', 'type_plan2_id', 'type_plan3_id', 'type_plan4_id', 'start_plan_date', 'start_plan_date2', 'start_plan_date3', 'start_plan_date4', 'absolut_start_plan_date', 'municipality_name', 'state_name', 'state', 'absolut_plan_documents', 'allow_seller_login',
+        'user_id', 'identification_number', 'dv', 'language_id', 'tax_id', 'type_environment_id', 'payroll_type_environment_id', 'eqdocs_type_environment_id', 'type_operation_id', 'type_document_identification_id', 'country_id', 'type_currency_id', 'type_organization_id', 'type_regime_id', 'type_liability_id', 'municipality_id', 'merchant_registration', 'address', 'phone', 'password', 'newpassword', 'type_plan_id', 'type_plan2_id', 'type_plan3_id', 'type_plan4_id', 'start_plan_date', 'start_plan_date2', 'start_plan_date3', 'start_plan_date4', 'absolut_start_plan_date', 'municipality_name', 'state_name', 'state', 'absolut_plan_documents', 'allow_seller_login', 'imap_server', 'imap_user', 'imap_password', 'imap_encryption', 'imap_port',
     ];
 
     /**
@@ -260,4 +260,14 @@ class Company extends Model
         return 'identification_number';
     }
 
+    public function validate_imap_mail_server()
+    {
+        if(!is_null($this->imap_server) && !is_null($this->imap_port) && !is_null($this->imap_user) && !is_null($this->imap_password) && !is_null($this->imap_encryption))
+          if($this->imap_server != '' && $this->imap_port != '' && $this->imap_user != '' && $this->imap_password != '' && $this->imap_encryption != '')
+            return true;
+          else
+            return false;
+        else
+          return false;
+    }
 }

@@ -122,6 +122,9 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/certificates-listing', 'Api\ConfigurationController@certificates_listing');
         Route::get('/certificates-listing/{company_identification_number}', 'Api\ConfigurationController@certificates_listing');
 
+        // IMAP mails
+        Route::post('/imap_receipt_acknowledgment', 'Api\ImapMailsController@imap_receipt_acknowledgment');
+
         // Equivalent Documents
         Route::prefix('/eqdoc')->group(function () {
             Route::post('/{testSetId}', 'Api\EqDocController@testSetStore');
