@@ -22,7 +22,6 @@ class RadianEventController extends Controller
 
     protected function processSellerDocumentReception(Request $request)
     {
-
         try
         {
             $att = new \DOMDocument('1.0', 'utf-8');
@@ -61,6 +60,7 @@ class RadianEventController extends Controller
                 $invoice_doc->state_document_id = 1;
                 $invoice_doc->type_document_id = $this->getTag($invoiceXMLStr, 'InvoiceTypeCode', 0)->nodeValue;
                 $invoice_doc->customer = $this->ValueXML($invoiceXMLStr, "/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID/");
+                $invoice_doc->payment_means = $this->ValueXML($invoiceXMLStr, "/Invoice/cac:PaymentMeans/cbc:ID/");
                 if(strpos($invoiceXMLStr, "</sts:Prefix>"))
                     $invoice_doc->prefix = $this->getTag($invoiceXMLStr, 'Prefix', 0)->nodeValue;
                 else

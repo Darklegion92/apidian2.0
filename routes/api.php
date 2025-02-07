@@ -133,6 +133,7 @@ Route::middleware('auth:api')->group(function () {
 
         // Invoice
         Route::prefix('/invoice')->group(function () {
+            Route::post('/send_pendings/{prefix?}/{number?}', 'Api\InvoiceController@send_pendings');
             Route::post('/preeliminar-view', 'Api\InvoiceController@preeliminarview');
             Route::post('/{testSetId}', 'Api\InvoiceController@testSetStore');
             Route::post('/', 'Api\InvoiceController@store');
