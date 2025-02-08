@@ -134,6 +134,16 @@ class EqDocController extends Controller
         // Actualizar Tablas
         $this->ActualizarTablas();
 
+        // Verificar si ya se envio la factura con anterioridad
+        $invoice_doc = Document::where('prefix', $request->prefix)->where('number', $request->number)->where('state_document_id', '=', 2)->get();
+        if(count($invoice_doc) > 0){
+            $typeD = TypeDocument::where('id', $invoice_doc[0]->type_document_id)->first();
+            return[
+                'success' => false,
+                'message' => "El documento {$request->prefix}{$request->number} ya fue enviado como tipo de documento: {$typeD->name} en la fecha: {$invoice_doc[0]->created_at}",
+            ];
+        }
+
         //Document
         $invoice_doc = new Document();
         $invoice_doc->request_api = json_encode($request->all());
@@ -343,11 +353,20 @@ class EqDocController extends Controller
         $sendBillSync = new SendBillSync($company->certificate->path, $company->certificate->password);
         $sendBillSync->To = $company->software->url_eqdocs;
         $sendBillSync->fileName = "{$resolution->next_consecutive}.xml";
-        if ($request->GuardarEn)
-            $sendBillSync->contentFile = $this->zipBase64($company, $resolution, $signInvoice->sign($invoice), $request->GuardarEn."\\{$pfs}-{$resolution->next_consecutive}");
+        if($request->GuardarEn)
+            $zipBase64_array = $this->zipBase64($company, $resolution, $signInvoice->sign($invoice), $request->GuardarEn."\\{$pfs}-{$resolution->next_consecutive}", false, true);
         else
-            $sendBillSync->contentFile = $this->zipBase64($company, $resolution, $signInvoice->sign($invoice), storage_path("app/public/{$company->identification_number}/{$pfs}-{$resolution->next_consecutive}"));
-
+            $zipBase64_array = $this->zipBase64($company, $resolution, $signInvoice->sign($invoice), storage_path("app/public/{$company->identification_number}/{$pfs}-{$resolution->next_consecutive}"), false, true);
+        if($request->dont_send_yet){
+            $sendBillSync->contentFile = $zipBase64_array['ZipBase64Bytes'];
+            $xml_filename = $zipBase64_array['xml_filename'];
+        }
+        else{
+            if ($request->GuardarEn)
+                $sendBillSync->contentFile = $this->zipBase64($company, $resolution, $signInvoice->sign($invoice), $request->GuardarEn."\\{$pfs}-{$resolution->next_consecutive}");
+            else
+                $sendBillSync->contentFile = $this->zipBase64($company, $resolution, $signInvoice->sign($invoice), storage_path("app/public/{$company->identification_number}/{$pfs}-{$resolution->next_consecutive}"));
+        }
         if($request->query_uuid)
             return [
                 'success' => true,
@@ -387,7 +406,30 @@ class EqDocController extends Controller
         $ar = new \DOMDocument;
         if ($request->GuardarEn){
             try{
-                $respuestadian = $sendBillSync->signToSend($request->GuardarEn."\\Req{$pf}-{$resolution->next_consecutive}.xml")->getResponseToObject($request->GuardarEn."\\Rpta{$pf}-{$resolution->next_consecutive}.xml");
+                if($request->dont_send_yet){
+                    $respuestadian = [
+                        'Envelope' => [
+                                'Body' => [
+                                    'SendBillSyncResponse' => [
+                                        'SendBillSyncResult' => [
+                                            'ErrorMessage' => [
+                                                "string" => ""
+                                            ],
+                                            'IsValid' => 'true',
+                                            'StatusCode' => '00',
+                                            'StatusDescription' => 'Procesado Correctamente.',
+                                            'StatusMessage' => "El Documento equivalente POS electrónico {$request->prefix}-{$request->number}, ha sido procesado y marcado para envio posterior satisfactoriamente.",
+                                            'XmlDocumentKey' => $signInvoice->ConsultarCUDE(),
+                                            'XmlFileName' => $xml_filename
+                                        ]
+                                    ]
+                                ]
+                        ]
+                    ];
+                    $respuestadian = json_decode(json_encode($respuestadian));
+                }
+                else
+                    $respuestadian = $sendBillSync->signToSend($request->GuardarEn."\\Req{$pf}-{$resolution->next_consecutive}.xml")->getResponseToObject($request->GuardarEn."\\Rpta{$pf}-{$resolution->next_consecutive}.xml");
                 if(isset($respuestadian->html))
                     return [
                         'success' => false,
@@ -399,10 +441,16 @@ class EqDocController extends Controller
                     if($request->atacheddocument_name_prefix)
                         $filename = $request->atacheddocument_name_prefix.$filename;
                     $cufecude = $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlDocumentKey;
-                    $invoice_doc->state_document_id = 1;
+                    if($request->dont_send_yet)
+                        $invoice_doc->state_document_id = 2;
+                    else
+                        $invoice_doc->state_document_id = 1;
                     $invoice_doc->cufe = $cufecude;
                     $invoice_doc->save();
-                    $signedxml = file_get_contents(storage_path("app/xml/{$company->id}/".$respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlFileName.".xml"));
+                    if($request->dont_send_yet)
+                        $signedxml = file_get_contents(storage_path("app/xml/{$company->id}/".$respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlFileName));
+                    else
+                        $signedxml = file_get_contents(storage_path("app/xml/{$company->id}/".$respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlFileName.".xml"));
 //                    $xml->loadXML($signedxml);
                     if(strpos($signedxml, "</Invoice>") > 0)
                         $td = '/Invoice';
@@ -411,10 +459,18 @@ class EqDocController extends Controller
                             $td = '/CreditNote';
                         else
                             $td = '/DebitNote';
-                    $appresponsexml = base64_decode($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes);
-                    $ar->loadXML($appresponsexml);
-                    $fechavalidacion = $ar->documentElement->getElementsByTagName('IssueDate')->item(0)->nodeValue;
-                    $horavalidacion = $ar->documentElement->getElementsByTagName('IssueTime')->item(0)->nodeValue;
+                    if($request->dont_send_yet){
+                        $appresponsexml = '<?xml version="1.0" encoding="utf-8" standalone="no"?><ApplicationResponse></ApplicationResponse>';
+                        $ar->loadXML($appresponsexml);
+                        $fechavalidacion = \Carbon\Carbon::now()->format('Y-m-d');
+                        $horavalidacion = \Carbon\Carbon::now()->format('H:i:s');
+                    }
+                    else{
+                        $appresponsexml = base64_decode($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes);
+                        $ar->loadXML($appresponsexml);
+                        $fechavalidacion = $ar->documentElement->getElementsByTagName('IssueDate')->item(0)->nodeValue;
+                        $horavalidacion = $ar->documentElement->getElementsByTagName('IssueTime')->item(0)->nodeValue;
+                    }
                     $document_number = $this->ValueXML($signedxml, $td."/cbc:ID/");
                     // Create XML AttachedDocument
                     $attacheddocument = $this->createXML(compact('user', 'company', 'customer', 'resolution', 'typeDocument', 'cufecude', 'signedxml', 'appresponsexml', 'fechavalidacion', 'horavalidacion', 'document_number'));
@@ -497,7 +553,30 @@ class EqDocController extends Controller
         }
         else{
             try{
-                $respuestadian = $sendBillSync->signToSend(storage_path("app/public/{$company->identification_number}/Req{$pf}-{$resolution->next_consecutive}.xml"))->getResponseToObject(storage_path("app/public/{$company->identification_number}/Rpta{$pf}-{$resolution->next_consecutive}.xml"));
+                if($request->dont_send_yet){
+                    $respuestadian = [
+                        'Envelope' => [
+                                'Body' => [
+                                    'SendBillSyncResponse' => [
+                                        'SendBillSyncResult' => [
+                                            'ErrorMessage' => [
+                                                "string" => ""
+                                            ],
+                                            'IsValid' => 'true',
+                                            'StatusCode' => '00',
+                                            'StatusDescription' => 'Procesado Correctamente.',
+                                            'StatusMessage' => "El Documento equivalente POS electrónico {$request->prefix}-{$request->number}, ha sido procesado y marcado para envio posterior satisfactoriamente.",
+                                            'XmlDocumentKey' => $signInvoice->ConsultarCUDE(),
+                                            'XmlFileName' => $xml_filename
+                                        ]
+                                    ]
+                                ]
+                        ]
+                    ];
+                    $respuestadian = json_decode(json_encode($respuestadian));
+                }
+                else
+                    $respuestadian = $sendBillSync->signToSend(storage_path("app/public/{$company->identification_number}/Req{$pf}-{$resolution->next_consecutive}.xml"))->getResponseToObject(storage_path("app/public/{$company->identification_number}/Rpta{$pf}-{$resolution->next_consecutive}.xml"));
                 if(isset($respuestadian->html))
                     return [
                         'success' => false,
@@ -509,10 +588,16 @@ class EqDocController extends Controller
                     if($request->atacheddocument_name_prefix)
                         $filename = $request->atacheddocument_name_prefix.$filename;
                     $cufecude = $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlDocumentKey;
-                    $invoice_doc->state_document_id = 1;
+                    if($request->dont_send_yet)
+                        $invoice_doc->state_document_id = 2;
+                    else
+                        $invoice_doc->state_document_id = 1;
                     $invoice_doc->cufe = $cufecude;
                     $invoice_doc->save();
-                    $signedxml = file_get_contents(storage_path("app/xml/{$company->id}/".$respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlFileName.".xml"));
+                    if($request->dont_send_yet)
+                        $signedxml = file_get_contents(storage_path("app/xml/{$company->id}/".$respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlFileName));
+                    else
+                        $signedxml = file_get_contents(storage_path("app/xml/{$company->id}/".$respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlFileName.".xml"));
 //                    $xml->loadXML($signedxml);
                     if(strpos($signedxml, "</Invoice>") > 0)
                         $td = '/Invoice';
@@ -521,10 +606,18 @@ class EqDocController extends Controller
                             $td = '/CreditNote';
                         else
                             $td = '/DebitNote';
-                    $appresponsexml = base64_decode($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes);
-                    $ar->loadXML($appresponsexml);
-                    $fechavalidacion = $ar->documentElement->getElementsByTagName('IssueDate')->item(0)->nodeValue;
-                    $horavalidacion = $ar->documentElement->getElementsByTagName('IssueTime')->item(0)->nodeValue;
+                    if($request->dont_send_yet){
+                        $appresponsexml = '<?xml version="1.0" encoding="utf-8" standalone="no"?><ApplicationResponse></ApplicationResponse>';
+                        $ar->loadXML($appresponsexml);
+                        $fechavalidacion = \Carbon\Carbon::now()->format('Y-m-d');
+                        $horavalidacion = \Carbon\Carbon::now()->format('H:i:s');
+                    }
+                    else{
+                        $appresponsexml = base64_decode($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes);
+                        $ar->loadXML($appresponsexml);
+                        $fechavalidacion = $ar->documentElement->getElementsByTagName('IssueDate')->item(0)->nodeValue;
+                        $horavalidacion = $ar->documentElement->getElementsByTagName('IssueTime')->item(0)->nodeValue;
+                    }
                     $document_number = $this->ValueXML($signedxml, $td."/cbc:ID/");
                     // Create XML AttachedDocument
                     $attacheddocument = $this->createXML(compact('user', 'company', 'customer', 'resolution', 'typeDocument', 'cufecude', 'signedxml', 'appresponsexml', 'fechavalidacion', 'horavalidacion', 'document_number'));
@@ -590,15 +683,15 @@ class EqDocController extends Controller
                 'send_email_success' => (null !== $invoice && $request->sendmail == true) ?? $invoice[0]->send_email_success == 1,
                 'send_email_date_time' => (null !== $invoice && $request->sendmail == true) ?? Carbon::now()->format('Y-m-d H:i'),
                 'ResponseDian' => $respuestadian,
-                'invoicexml'=>base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/{$pfs}-{$resolution->next_consecutive}.xml"))),
-                'zipinvoicexml'=>base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/{$pfs}-{$resolution->next_consecutive}.zip"))),
-                'unsignedinvoicexml'=>base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/{$pf}-{$resolution->next_consecutive}.xml"))),
-                'reqfe'=>base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/Req{$pf}-{$resolution->next_consecutive}.xml"))),
-                'rptafe'=>base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/Rpta{$pf}-{$resolution->next_consecutive}.xml"))),
-                'attacheddocument'=>base64_encode($at),
-                'urlinvoicexml'=>"{$pfs}-{$resolution->next_consecutive}.xml",
-                'urlinvoicepdf'=>"{$pfs}-{$resolution->next_consecutive}.pdf",
-                'urlinvoiceattached'=>"{$filename}.xml",
+                'invoicexml' => base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/{$pfs}-{$resolution->next_consecutive}.xml"))),
+                'zipinvoicexml' => base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/{$pfs}-{$resolution->next_consecutive}.zip"))),
+                'unsignedinvoicexml' => base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/{$pf}-{$resolution->next_consecutive}.xml"))),
+                'reqfe' => $request->dont_send_yet ? null : base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/Req{$pf}-{$resolution->next_consecutive}.xml"))),
+                'rptafe' => $request->dont_send_yet ? null : base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/Rpta{$pf}-{$resolution->next_consecutive}.xml"))),
+                'attacheddocument' => base64_encode($at),
+                'urlinvoicexml' => "{$pfs}-{$resolution->next_consecutive}.xml",
+                'urlinvoicepdf' => "{$pfs}-{$resolution->next_consecutive}.pdf",
+                'urlinvoiceattached' => "{$filename}.xml",
                 'cufe' => $signInvoice->ConsultarCUDE(),
                 'QRStr' => $QRStr,
                 'certificate_days_left' => $certificate_days_left,
@@ -912,5 +1005,87 @@ class EqDocController extends Controller
                 'resolution_days_left' => $this->days_between_dates(Carbon::now()->format('Y-m-d'), $resolution->date_to),
             ];
         }
+    }
+
+    public function send_pendings($prefix = null, $number = null)
+    {
+        // User
+        $user = auth()->user();
+
+        // User company
+        $company = $user->company;
+
+        // Verify Certificate
+        $certificate_days_left = 0;
+        $c = $this->verify_certificate();
+        if(!$c['success'])
+            return $c;
+        else
+            $certificate_days_left = $c['certificate_days_left'];
+
+        if($company->state == false)
+            return [
+                'success' => false,
+                'message' => 'La empresa se encuentra en el momento INACTIVA para enviar documentos electronicos...',
+            ];
+
+        if($prefix == null && $number == null)
+//            $documents = Document::where('type_document_id', 12)->where('state_document_id', 2)->where('identification_number', $company->identification_number)->get();
+            $documents = Document::whereIn('type_document_id', [15, 16, 19, 24])->where('state_document_id', 2)->where('identification_number', $company->identification_number)->get();
+
+        if($prefix != null && $number == null)
+//            $documents = Document::where('type_document_id', 12)->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->get();
+            $documents = Document::whereIn('type_document_id', [15, 16, 19, 24])->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->get();
+
+        if($prefix == null && $number != null)
+            return [
+                'success' => false,
+                'message' => 'Para hacer envios los envios pendientes debe al menos suministrar el prefijo de las facturas de contingencia tipo 4 que desea enviar....',
+            ];
+
+        if($prefix != null && $number != null)
+//            $documents = Document::where('type_document_id', 12)->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->where('number', $number)->get();
+            $documents = Document::whereIn('type_document_id', [15, 16, 19, 24])->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->where('number', $number)->get();
+
+        $respuestas_dian = [];
+        if(count($documents) > 0){
+            foreach($documents as $document){
+                // Type document
+                $typeDocument = TypeDocument::findOrFail($document->type_document_id);
+                $pf = strtoupper($typeDocument->prefix);
+                $pfs = strtoupper($typeDocument->prefix)."S";
+
+                $sendBillSync = new SendBillSync($company->certificate->path, $company->certificate->password);
+                $sendBillSync->To = $company->software->url;
+                $sendBillSync->fileName = "{$document->prefix}{$document->number}.xml";
+                $sendBillSync->contentFile = base64_encode(file_get_contents(preg_replace("/[\r\n|\n|\r]+/", "", storage_path("app/public/{$company->identification_number}/{$pfs}-{$document->prefix}{$document->number}.zip"))));
+
+                $respuestadian = $sendBillSync->signToSend(storage_path("app/public/{$company->identification_number}/Req{$pf}-{$document->prefix}{$document->number}.xml"))->getResponseToObject(storage_path("app/public/{$company->identification_number}/Rpta{$pf}-{$document->prefix}{$document->number}.xml"));
+                if(isset($respuestadian->html))
+                    return [
+                        'success' => false,
+                        'message' => "El servicio DIAN no se encuentra disponible en el momento, reintente mas tarde..."
+                    ];
+                if($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->IsValid == 'true'){
+                    $document->state_document_id = 1;
+                    $document->save();
+                }
+                $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes = null;
+                $respuestas_dian[] = [
+                    'document' => "{$document->prefix}-{$document->number}",
+                    'Envelope' => $respuestadian->Envelope,
+                ];
+            }
+            return [
+                'success' => true,
+                'message' => 'Envios de documentos pendientes realizados con exito.',
+                'responses' => $respuestas_dian,
+            ];
+        }
+        else
+            return [
+                'success' => true,
+                'message' => 'No existen registros de documentos pendientes para realizar envios....',
+            ];
     }
 }

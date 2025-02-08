@@ -127,6 +127,7 @@ Route::middleware('auth:api')->group(function () {
 
         // Equivalent Documents
         Route::prefix('/eqdoc')->group(function () {
+            Route::post('/send_pendings/{prefix?}/{number?}', 'Api\EqDocController@send_pendings');
             Route::post('/{testSetId}', 'Api\EqDocController@testSetStore');
             Route::post('/', 'Api\EqDocController@store');
         });

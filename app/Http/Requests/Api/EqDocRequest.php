@@ -175,6 +175,9 @@ class EqDocRequest extends FormRequest
             // Just query document uuid don't send
             'query_uuid' => 'nullable|boolean',
 
+            // Don't send to DIAN yet, mark as state_document_id 2 and send later with send_pendings method
+            'dont_send_yet' => 'nullable|boolean',
+
             // Dynamic field
             'dynamic_field' => 'nullable|array',
             'dynamic_field.name' => 'nullable|required_with:dynamic_field|string',
