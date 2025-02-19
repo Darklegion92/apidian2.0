@@ -1294,6 +1294,74 @@ trait DocumentTrait
             return $valorXML;
     }
 
+    /**
+     * Retorna todos los valores encontrados en el XML (en forma de string) para el xpath dado.
+     *
+     * Nota: Esta función utiliza operaciones de string para "parsear" el XML, por lo que puede no ser
+     * tan robusta como utilizar un parser XML real (por ejemplo, SimpleXML o DOMDocument).
+     *
+     * @param string $stringXML El XML en formato string.
+     * @param string $xpath El xpath a buscar, por ejemplo: "/cac:DocumentReference"
+     * @return array|null Array con todos los valores encontrados o NULL si el xpath no inicia con '/'
+     */
+    protected function ValueXMLMultiple(string $stringXML, string $xpath)
+    {
+        // Verificar que el xpath inicie con '/'
+        if (substr($xpath, 0, 1) !== '/') {
+            return null;
+        }
+
+        // Extraer el nombre del nodo a buscar y la parte restante del xpath (si existe)
+        $rest = substr($xpath, 1);
+        $pos = strpos($rest, '/');
+        if ($pos !== false) {
+            $search = substr($rest, 0, $pos);
+            $remainingXpath = substr($rest, $pos); // incluye la barra inicial
+        } else {
+            $search = $rest;
+            $remainingXpath = '';
+        }
+
+        $result = [];
+        $offset = 0;
+
+        // Buscar todas las ocurrencias del nodo en el string XML
+        while (($posInicio = strpos($stringXML, "<" . $search, $offset)) !== false) {
+            // Encontrar el final de la etiqueta de apertura
+            $tagEnd = strpos($stringXML, ">", $posInicio);
+            if ($tagEnd === false) {
+                break;
+            }
+            $tagEnd++; // posición inmediatamente después de '>'
+            // Encontrar la etiqueta de cierre correspondiente
+            $posCierre = strpos($stringXML, "</" . $search . ">", $tagEnd);
+            if ($posCierre === false) {
+                break;
+            }
+            // Extraer el contenido del nodo
+            $valorXML = substr($stringXML, $tagEnd, $posCierre - $tagEnd);
+
+            // Si hay un xpath restante, se llama recursivamente para seguir descendiendo
+            if ($remainingXpath !== '' && strcmp($remainingXpath, '/') !== 0) {
+                $value = $this->ValueXMLMultiple($valorXML, $remainingXpath);
+                if ($value !== null) {
+                    // Puede retornar un array (varios nodos) o un único valor
+                    if (is_array($value)) {
+                        $result = array_merge($result, $value);
+                    } else {
+                        $result[] = $value;
+                    }
+                }
+            } else {
+                $result[] = $valorXML;
+            }
+            // Actualizar el offset para buscar la siguiente ocurrencia
+            $offset = $posCierre + strlen("</" . $search . ">");
+        }
+
+        return $result;
+    }
+
     protected function readSimpleXML($path){
         $xml = new \SimpleXMLElement(file_get_contents($path));
         return $xml;

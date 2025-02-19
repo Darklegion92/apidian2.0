@@ -78,6 +78,9 @@ Route::middleware('auth:api')->group(function () {
 	        Route::post('/document/{trackId}/{GuardarEn?}', 'Api\XmlDocumentController@document');
         });
 
+        //Get Reference Notes
+        Route::get('/document/get-reference-notes/{trackId}', 'Api\XmlDocumentController@getReferenceNotes');
+
         // Plan info
         Route::get('/plan/infoplanuser', 'Api\ConfigurationController@infoPlanUser');
 
