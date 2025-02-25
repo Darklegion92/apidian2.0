@@ -4900,7 +4900,7 @@
 					"response": []
 				},
 				{
-					"name": "Consultar Parametros de Email",
+					"name": "Consultar tablas con valores",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
