@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use DB;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Schema;
 use Storage;
 use App\User;
 use Exception;
@@ -64,34 +66,28 @@ class ConfigurationController extends Controller
             ->only('store');
     }
 
-    public function table_health_type_document_identifications(){
-        $health_type_document_identifications = HealthTypeDocumentIdentification::all();
-        return compact('health_type_document_identifications');
-    }
-
-    public function table_health_type_users(){
-        $health_type_users = HealthTypeUser::all();
-        return compact('health_type_users');
-    }
-
-    public function table_health_contracting_payment_methods(){
-        $health_contracting_payment_methods = HealthContractingPaymentMethod::all();
-        return compact('health_contracting_payment_methods');
-    }
-
-    public function table_health_coverages(){
-        $health_coverages = HealthCoverage::all();
-        return compact('health_coverages');
-    }
-
-    public function table_resolutions($identification_number){
-        try{
-            $resolutions = Resolution::where('company_id', Company::where('identification_number', $identification_number)->firstOrFail()->id)->get();
-            return compact('resolutions');
-        } catch (Exception $e) {
-            $resolutions = [];
-            return compact('resolutions');
+    public function table(string $table_name, ?string $column = null, ?string $value = null): JsonResponse
+    {
+        // Verificar si la tabla existe en la base de datos
+        if (!Schema::hasTable($table_name)) {
+            return response()->json(['success' => false, 'message' => 'La tabla especificada no existe'], 404);
         }
+
+        // Construir la consulta
+        $query = DB::table($table_name);
+
+        // Si se especifican columna y valor, aplicar filtro
+        if ($column && $value) {
+            if (!Schema::hasColumn($table_name, $column)) {
+                return response()->json(['success' => false, 'message' => 'La columna especificada no existe en la tabla'], 400);
+            }
+            $query->where($column, 'LIKE', "{$value}%");
+        }
+
+        // Obtener los valores
+        $values = $query->get();
+
+        return response()->json(['data' => $values], 200);
     }
 
     public function emailconfig()

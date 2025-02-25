@@ -58,16 +58,12 @@ Route::middleware('auth:api')->group(function () {
     Route::post('process-seller-document-reception', 'Api\RadianEventController@processSellerDocumentReception');
 
     Route::prefix('/table')->group(function(){
-        Route::get('/health_type_document_identifications', 'Api\ConfigurationController@table_health_type_document_identifications');
-        Route::get('/health_type_users', 'Api\ConfigurationController@table_health_type_users');
-        Route::get('/health_contracting_payment_methods', 'Api\ConfigurationController@table_health_contracting_payment_methods');
-        Route::get('/health_coverages', 'Api\ConfigurationController@table_health_coverages');
-        Route::get('/resolutions/{identification_number}', 'Api\ConfigurationController@table_resolutions');
+        Route::get('/{table_name}/{column?}/{value?}', 'Api\ConfigurationController@table');
     });
 
     // UBL 2.1
     Route::prefix('/ubl2.1')->group(function () {
-        // Xml Document
+
         Route::prefix('/emailblacklist')->group(function () {
 	        Route::post('/add', 'Api\EmailBlackListController@add');
 	        Route::post('/delete', 'Api\EmailBlackListController@delete');
