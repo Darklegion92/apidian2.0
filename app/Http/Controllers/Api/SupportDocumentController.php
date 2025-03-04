@@ -299,6 +299,7 @@ class SupportDocumentController extends Controller
 
         // Create XML
         $invoice = $this->createXML(compact('user', 'company', 'seller', 'taxTotals', 'withHoldingTaxTotal', 'resolution', 'paymentForm', 'typeDocument', 'invoiceLines', 'allowanceCharges', 'legalMonetaryTotals', 'date', 'time', 'notes', 'typeoperation', 'orderreference', 'prepaidpayment', 'prepaidpayments', 'delivery', 'deliveryparty', 'request', 'idcurrency', 'calculationrate', 'calculationratedate', 'healthfields'));
+        //return $invoice->saveXML();
 
         // Register Seller
         if(env('APPLY_SEND_CUSTOMER_CREDENTIALS', TRUE))
