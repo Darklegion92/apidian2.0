@@ -66,6 +66,16 @@ class ConfigurationController extends Controller
             ->only('store');
     }
 
+    public function table_resolutions($identification_number){
+        try{
+            $resolutions = Resolution::where('company_id', Company::where('identification_number', $identification_number)->firstOrFail()->id)->get();
+            return compact('resolutions');
+        } catch (Exception $e) {
+            $resolutions = [];
+            return compact('resolutions');
+        }
+    }
+
     public function table(string $table_name, ?string $column = null, ?string $value = null): JsonResponse
     {
         // Verificar si la tabla existe en la base de datos

@@ -57,6 +57,8 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('process-seller-document-reception', 'Api\RadianEventController@processSellerDocumentReception');
 
+    Route::get('/table_resolutions/{identification_number}', 'Api\ConfigurationController@table_resolutions');
+
     Route::prefix('/table')->group(function(){
         Route::get('/{table_name}/{column?}/{value?}', 'Api\ConfigurationController@table');
     });
