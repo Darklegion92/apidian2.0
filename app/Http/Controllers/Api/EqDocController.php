@@ -1068,6 +1068,7 @@ class EqDocController extends Controller
                     ];
                 if($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->IsValid == 'true'){
                     $document->state_document_id = 1;
+                    $document->cufe = $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlDocumentKey;
                     $document->save();
                 }
                 $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes = null;

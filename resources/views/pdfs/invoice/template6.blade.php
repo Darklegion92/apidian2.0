@@ -215,7 +215,7 @@
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">Val. Unit</th>
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">IVA/INC</th>
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">IC</th>
-                <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">Dcto</th>
+                <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">Dcto Unit.</th>
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">%</th>
                 <th class="text-center" style="background-color: rgb(174, 174, 186); color: black;">Val. Item</th>
             </tr>
@@ -294,7 +294,7 @@
                         @endif
 
                         @if(isset($item['allowance_charges']))
-                            <?php $TotalDescuentosEnLineas = $TotalDescuentosEnLineas + ($item['allowance_charges'][0]['amount'] / $item['invoiced_quantity']) ?>
+                            <?php $TotalDescuentosEnLineas = $TotalDescuentosEnLineas + ($item['allowance_charges'][0]['amount']) ?>
                             <td class="text-right">{{number_format($item['allowance_charges'][0]['amount'] / $item['invoiced_quantity'], 2)}}</td>
                             <td class="text-right">{{number_format(($item['allowance_charges'][0]['amount'] * 100) / $item['allowance_charges'][0]['base_amount'], 2)}}</td>
                             @if(isset($item['tax_totals']))
@@ -445,22 +445,22 @@
                                 @if(isset($request->tarifaica))
                                     @if(isset($request->legal_monetary_totals['allowance_total_amount']))
                                         @if(isset($request->previous_balance))
-                                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2)}}</td>
+                                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance, 2)}}</td>
                                         @else
-                                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2)}}</td>
+                                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'], 2)}}</td>
                                         @endif
                                     @else
                                         @if(isset($request->previous_balance))
-                                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + 0 + $request->previous_balance - $TotalRetenciones, 2)}}</td>
+                                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + 0 + $request->previous_balance, 2)}}</td>
                                         @else
-                                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + 0 - $TotalRetenciones, 2)}}</td>
+                                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + 0, 2)}}</td>
                                         @endif
                                     @endif
                                 @else
                                     @if(isset($request->previous_balance))
-                                        <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2)}}</td>
+                                        <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance, 2)}}</td>
                                     @else
-                                        <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2)}}</td>
+                                        <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'], 2)}}</td>
                                     @endif
                                 @endif
                             </tr>
