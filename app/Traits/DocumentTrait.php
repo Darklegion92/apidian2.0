@@ -384,13 +384,13 @@ trait DocumentTrait
             else
                 $totalbase = $request->legal_monetary_totals['line_extension_amount'];
 
-            if($tipodoc == 'SRV' or $tipodoc == 'CIN')
+            if($tipodoc == 'CIN')
                 if($company->eqdocs_type_environment_id == 1)
                     return 'https://catalogo-vpfe.dian.gov.co/document/searchqr?documentkey='.$cufecude;
                 else
                     return 'https://catalogo-vpfe-hab.dian.gov.co/document/searchqr?documentkey='.$cufecude;
 
-            if($tipodoc == "INVOICE" || $tipodoc == "POS" || $tipodoc == "TTR"){
+            if($tipodoc == "INVOICE" || $tipodoc == "POS" || $tipodoc == "TTR" || $tipodoc == "SRV"){
                 if($company->type_environment_id == 2){
                     if(isset($request->tax_totals[0]['tax_amount'])){
                         $qrBase64 = base64_encode(QrCode::format('png')
@@ -473,7 +473,10 @@ trait DocumentTrait
                     if($tipodoc == 'TTR')
                         $filename = storage_path("app/public/{$company->identification_number}/TTRS-{$resolution->next_consecutive}.pdf");
                     else
-                        $filename = storage_path("app/public/{$company->identification_number}/FES-{$resolution->next_consecutive}.pdf");
+                        if($tipodoc == 'SRV')
+                            $filename = storage_path("app/public/{$company->identification_number}/SRVS-{$resolution->next_consecutive}.pdf");
+                        else
+                            $filename = storage_path("app/public/{$company->identification_number}/FES-{$resolution->next_consecutive}.pdf");
             }
             else
                 if($tipodoc == "NC"){
