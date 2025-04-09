@@ -25,7 +25,7 @@ class RutRequest extends FormRequest
     {
         return [
             'identification_number' => 'required|numeric',
-            'type_document_id' => 'required|integer|exists:type_document_identifications,id',
+            'type_document_id' => 'nullable|integer|exists:type_document_identifications,id',
         ];
     }
 

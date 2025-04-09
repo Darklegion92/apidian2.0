@@ -215,29 +215,27 @@ class MiscelaneousController extends Controller
             ];
 
             // Tipos de documentos
-            $typeDocumentIdentification = TypeDocumentIdentification::find($request->type_document_id);
+            $typeDocumentIdentification = isset($request->type_document_id) ? TypeDocumentIdentification::find($request->type_document_id) : TypeDocumentIdentification::find(3);
 
             // clase SOAP
             $getGetAcquirer = new GetAcquirer($user->company->certificate->path, $user->company->certificate->password);
             $getGetAcquirer->identificationNumber = $request->identification_number;
-            $getGetAcquirer->identificationType = trim($typeDocumentIdentification->code) ?? 31;
+            $getGetAcquirer->identificationType = trim($typeDocumentIdentification->code) ?? 13;
 
             $response = $getGetAcquirer->signToSend()->getResponseToObject();
-            // return [$response];
+//            return [$response];
             if (is_object($response) && property_exists($response, 'Envelope')) {
                 $statusCode = $response->Envelope->Body->GetAcquirerResponse->GetAcquirerResult->StatusCode ?? null;
 //                $data['status_code_dian'] = (int) $statusCode;
                 if ($statusCode === "200") {
                     $receiverEmail = $response->Envelope->Body->GetAcquirerResponse->GetAcquirerResult->ReceiverEmail ?? null;
                     $receiverName  = $response->Envelope->Body->GetAcquirerResponse->GetAcquirerResult->ReceiverName ?? null;
-
                     $getValue = function ($value) {
                         if (is_object($value) && isset($value->_attributes->nil) && $value->_attributes->nil === 'true') {
                             return null;
                         }
                         return is_string($value) ? $value : null;
                     };
-
                     $data['business_name'] = $getValue($receiverName);
                     $data['email'] = $getValue($receiverEmail);
                 } else {
