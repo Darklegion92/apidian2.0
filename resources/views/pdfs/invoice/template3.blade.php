@@ -245,7 +245,7 @@
                                 @if(isset($item['notes']))
                                     | {{$item['notes']}}
                                 @endif
-                                | {{ number_format($item['invoiced_quantity'], 2) }} {{ $um->findOrFail($item['unit_measure_id'])['name'] }}
+                                | {{ $um->findOrFail($item['unit_measure_id'])['name'] }} : {{ number_format($item['invoiced_quantity'], 2) }}
                                 | Val. Unit: 
                                     @if(isset($item['allowance_charges']))
                                         {{ number_format(($item['line_extension_amount'] + $item['allowance_charges'][0]['amount']) / $item['invoiced_quantity'], 2) }}
@@ -261,6 +261,16 @@
                                         @endif
                                     @else
                                         E
+                                    @endif
+                                    |  
+                                    @if(isset($item['allowance_charges']))
+                                       DESCUENTO:
+                                       {{number_format(($item['allowance_charges'][0]['amount'] * 100) / $item['allowance_charges'][0]['base_amount'], 2)}}%
+                                       ${{number_format($item['allowance_charges'][0]['amount'] / $item['invoiced_quantity'], 2)}}
+                                    @else
+                                        {{number_format("0", 2)}}
+                                        {{number_format("0", 2)}}
+                                       {{number_format($item['invoiced_quantity'] * ($item['line_extension_amount'] / $item['invoiced_quantity']), 2)}}
                                     @endif
                             @endif
                         </td>
