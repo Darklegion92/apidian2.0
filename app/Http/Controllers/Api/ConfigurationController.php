@@ -449,8 +449,10 @@ class ConfigurationController extends Controller
             $company = auth()->user()->company;
         else
             $company = $user->company;
-        $pfxContent = file_get_contents(storage_path("app/certificates/".$company->certificate->name));
         try {
+            if(!file_exists(storage_path("app/certificates/".$company->certificate->name)))
+                return date('d/m/Y', strtotime('1900-01-01'));
+            $pfxContent = file_get_contents(storage_path("app/certificates/".$company->certificate->name));
             if (!openssl_pkcs12_read($pfxContent, $x509certdata, $company->certificate->password)) {
                 throw new Exception('The certificate could not be read.');
             }

@@ -11,6 +11,8 @@ use App\TypeDocument;
 use App\TypeCurrency;
 use App\TypeOperation;
 use App\PaymentMethod;
+use App\Certificate;
+use App\Software;
 use App\AllowanceCharge;
 use App\LegalMonetaryTotal;
 use App\PrepaidPayment;
@@ -1097,8 +1099,11 @@ class EqDocController extends Controller
         $respuestas_dian = [];
         if(count($documents) > 0){
             foreach($documents as $document){
-                if($prefix == 'ALL' && $number == 'ALL')
+                if($prefix == 'ALL' && $number == 'ALL'){
                     $company = Company::where('identification_number', $document->identification_number);
+                    $company->certificate = Certificate::where('company_id', $company->id);
+                    $company->software = Software::where('company_id', $company->id);
+                }
                 // Type document
                 $typeDocument = TypeDocument::findOrFail($document->type_document_id);
                 $pf = strtoupper($typeDocument->prefix);
