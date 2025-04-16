@@ -1100,9 +1100,9 @@ class EqDocController extends Controller
         if(count($documents) > 0){
             foreach($documents as $document){
                 if($prefix == 'ALL' && $number == 'ALL'){
-                    $company = Company::where('identification_number', $document->identification_number);
-                    $company->certificate = Certificate::where('company_id', $company->id);
-                    $company->software = Software::where('company_id', $company->id);
+                    $company = Company::where('identification_number', $document->identification_number)->first();
+//                    $company->certificate = Certificate::where('company_id', $company->id)->first();
+//                    $company->software = Software::where('company_id', $company->id)->first();
                 }
                 // Type document
                 $typeDocument = TypeDocument::findOrFail($document->type_document_id);
