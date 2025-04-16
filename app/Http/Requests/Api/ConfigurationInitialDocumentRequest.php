@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 
 class ConfigurationInitialDocumentRequest extends FormRequest
 {
@@ -14,6 +15,29 @@ class ConfigurationInitialDocumentRequest extends FormRequest
     public function authorize()
     {
         return true;
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation()
+    {
+        if ($this->has('type_document_id')) {
+            $value = $this->input('type_document_id');
+
+            // Buscar por id o por code
+            $record = DB::table('type_documents')
+                ->where('id', $value)
+                ->orWhere('code', $value)
+                ->first();
+
+            if ($record) {
+                // Reemplazar con el id real
+                $this->merge([
+                    'type_document_id' => $record->id,
+                ]);
+            }
+        }
     }
 
     /**

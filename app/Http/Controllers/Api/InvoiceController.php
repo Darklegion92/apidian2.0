@@ -1275,13 +1275,22 @@ class InvoiceController extends Controller
                 'message' => 'Para hacer envios los envios pendientes debe al menos suministrar el prefijo de las facturas de contingencia tipo 4 que desea enviar....',
             ];
 
-        if($prefix != null && $number != null)
+        if($prefix != null && $number != null){
+            if($prefix == 'ALL' && $number == 'ALL')
+                $documents = Document::where('type_document_id', 1)->where('state_document_id', 2)->get();
+            else
+                $documents = Document::where('type_document_id', 1)->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->where('number', $number)->get();
+        }
+        else{
 //            $documents = Document::where('type_document_id', 12)->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->where('number', $number)->get();
             $documents = Document::where('type_document_id', 1)->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->where('number', $number)->get();
+        }
 
         $respuestas_dian = [];
         if(count($documents) > 0){
             foreach($documents as $document){
+                if($prefix == 'ALL' && $number == 'ALL')
+                    $company = Company::where('identification_number', $document->identification_number);
                 $sendBillSync = new SendBillSync($company->certificate->path, $company->certificate->password);
                 $sendBillSync->To = $company->software->url;
                 $sendBillSync->fileName = "{$document->prefix}{$document->number}.xml";
@@ -1296,6 +1305,11 @@ class InvoiceController extends Controller
                 if($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->IsValid == 'true'){
                     $document->state_document_id = 1;
                     $document->cufe = $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlDocumentKey;
+                    $document->save();
+                }
+                else{
+                    $document->state_document_id = 0;
+                    $document->cufe = "";
                     $document->save();
                 }
                 $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes = null;
