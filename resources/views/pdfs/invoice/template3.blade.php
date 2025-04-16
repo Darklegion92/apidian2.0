@@ -7,14 +7,14 @@
 
 {{-- Header incluido en el template--}}
 
-<table style="width: 100%; font-size: 9px; font-weight: bold;">
+<!-- Encabezado: Información de la Empresa y Resolución (centrado) -->
+<table style="width: 100%; font-size: 9px;">
     <!-- Logo en la parte superior -->
     <tr>
         <td style="text-align: center;">
             <img style="max-width: 170px; height: auto; margin-bottom: 5px;" src="{{$imgLogo}}" alt="logo">
         </td>
     </tr>
-
     <!-- Información de la Empresa -->
     <tr>
         <td style="text-align: center;">
@@ -23,77 +23,81 @@
                 <strong>{{$request->establishment_name}}</strong><br>
             @endif
             <strong>NIT: {{$company->identification_number}}-{{$company->dv}} - Dirección: {{$company->address}}</strong><br>
-            <strong>Tel: {{$company->phone}} - Correo: {{$user->email}}</strong><br>
+            <strong>Tel: {{$company->phone}} - Correo: {{$user->email}}</strong>
         </td>
     </tr>
-
-    <!-- Detalles de la Factura -->
+    <!-- Información Adicional y Condiciones, Resolución -->
     <tr>
-        <td style="text-align: center;">
-            <strong>FACTURA ELECTRONICA DE VENTA {{$resolution->prefix}} - {{$request->number}}</strong><br>
-            <strong>Fecha Em.: {{$date}} - Fecha Val. DIAN: {{$date}}</strong><br>
-            <strong>Hora Validación DIAN: {{$time}}</strong><br>
-        </td>
-    </tr>
-
-    <!-- Información Adicional y Condiciones -->
-    <tr>
-        <td style="text-align: center;">
-            <strong>Regimen: {{$company->type_regime->name}}</strong><br>
-            <strong>Obligacion: {{$company->type_liability->name}}</strong><br>
+        <td style="text-align: center; margin-top: 5px;">
+            <strong>Regimen: {{$company->type_regime->name}}</strong> - 
+            <strong>Obligacion: {{$company->type_liability->name}}</strong>
             @if(isset($request->nombretipodocid))
-                <strong>Tipo Documento ID: {{$request->nombretipodocid}}</strong><br>
+                - <strong>Tipo Documento ID: {{$request->nombretipodocid}}</strong>
             @endif
             @if(isset($request->tarifaica) && $request->tarifaica != '100')
-                <strong>TARIFA ICA: {{$request->tarifaica}}%</strong><br>
+                - <strong>TARIFA ICA: {{$request->tarifaica}}%</strong>
             @endif
             @if(isset($request->actividadeconomica))
-                <strong>ACTIVIDAD ECONOMICA: {{$request->actividadeconomica}}</strong><br>
+                - <strong>ACTIVIDAD ECONOMICA: {{$request->actividadeconomica}}</strong>
             @endif
             @if(isset($request->seze))
                 <?php
                     $aseze = substr($request->seze, 0, strpos($request->seze, '-', 0));
                     $asociedad = substr($request->seze, strpos($request->seze, '-', 0) + 1);
                 ?>
-                <strong>Regimen SEZE Año: {{$aseze}} Constitución Sociedad Año: {{$asociedad}}</strong><br>
+                - <strong>Regimen SEZE Año: {{$aseze}} Constitución Sociedad Año: {{$asociedad}}</strong>
             @endif
+            <br>
             <strong>Resolución de Facturación Electrónica No. {{$resolution->resolution}} de {{$resolution->resolution_date}}</strong><br>
             <strong>Prefijo: {{$resolution->prefix}}, Rango {{$resolution->from}} al {{$resolution->to}}</strong><br>
             <strong>Vigencia Desde: {{$resolution->date_from}} Hasta: {{$resolution->date_to}}</strong><br>
             @if (isset($request->seze))
-                <strong>FAVOR ABSTENERSE DE PRACTICAR RETENCION EN LA FUENTE REGIMEN ESPECIAL DECRETO 2112 DE 2019</strong><br>
+                <strong>FAVOR ABSTENERSE DE PRACTICAR RETENCIÓN EN LA FUENTE REGIMEN ESPECIAL DECRETO 2112 DE 2019</strong>
             @endif
         </td>
     </tr>
-
-    <!-- Información de Contacto del Establecimiento -->
+    <!-- Información de Contacto del Establecimiento 
     <tr>
-        <td style="text-align: center;">
+        <td style="text-align: center; margin-top: 5px;">
             @if(isset($request->establishment_address))
-                <strong>{{$request->establishment_address}} -</strong>
+                <strong>{{$request->establishment_address}}</strong> -
             @else
-                <strong>{{$company->address}} -</strong>
+                <strong>{{$company->address}}</strong> -
             @endif
             @inject('municipality', 'App\Municipality')
             @if(isset($request->establishment_municipality))
-                <strong>{{$municipality->findOrFail($request->establishment_municipality)['name']}} - {{$municipality->findOrFail($request->establishment_municipality)['department']['name']}} -</strong>
+                <strong>{{$municipality->findOrFail($request->establishment_municipality)['name']}} - {{$municipality->findOrFail($request->establishment_municipality)['department']['name']}}</strong> -
             @else
-                <strong>{{$company->municipality->name}} - {{$municipality->findOrFail($company->municipality->id)['department']['name']}} -</strong>
+                <strong>{{$company->municipality->name}} - {{$municipality->findOrFail($company->municipality->id)['department']['name']}}</strong> -
             @endif
             {{$company->country->name}}<br>
             @if(isset($request->establishment_phone))
-                <strong>Teléfono: {{$request->establishment_phone}}</strong><br>
+                <strong>Teléfono: {{$request->establishment_phone}}</strong> -
             @else
-                <strong>Teléfono: {{$company->phone}}</strong><br>
+                <strong>Teléfono: {{$company->phone}}</strong> -
             @endif
             @if(isset($request->establishment_email))
-                <strong>E-mail: {{$request->establishment_email}}</strong><br>
+                <strong>E-mail: {{$request->establishment_email}}</strong>
             @else
-                <strong>E-mail: {{$user->email}}</strong><br>
+                <strong>E-mail: {{$user->email}}</strong>
             @endif
         </td>
     </tr>
+    -->
 </table>
+
+<!-- Detalles de la Factura (alineados a la izquierda) -->
+<table style="width: 100%; font-size: 9px; margin-top: 10px;">
+    <tr>
+        <td style="text-align: left;">
+            <strong>FACTURA ELECTRONICA DE VENTA {{$resolution->prefix}} - {{$request->number}}</strong><br>
+            <strong>Fecha Emisión: {{$date}}</strong><br>
+            <strong>Fecha Validación DIAN: {{$date}}</strong><br>
+            <strong>Hora Validación DIAN: {{$time}}</strong>
+        </td>
+    </tr>
+</table>
+
 
 
 {{--Fin del Header--}}
@@ -101,121 +105,78 @@
 <hr>
 
 <body>
-    <table style="font-size: 13px; font-weight: bold;" >
-        <tr>
-            <td class="vertical-align-top" style="width: 60%;">
-                <table>
-                    <tr>
-                        <td><strong>CC o NIT:</strong></td>
-                        <td><strong>{{$customer->company->identification_number}}-{{$request->customer['dv'] ?? NULL}} </strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Cliente:</strong></td>
-                        <td><strong>{{$customer->name}}</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Régimen:</strong></td>
-                        <td><strong>{{$customer->company->type_regime->name}}</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Obligación:</strong></td>
-                        <td><strong>{{$customer->company->type_liability->name}}</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Dirección:</strong></td>
-                        <td><strong>{{$customer->company->address}}</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Ciudad:</td>
-                        @if($customer->company->country->id == 46)
-                            <td><strong>{{$customer->company->municipality->name}} - {{$customer->company->country->name}} </strong></td>
-                        @else
-                            <td><strong>{{$customer->company->municipality_name}} - {{$customer->company->state_name}} - {{$customer->company->country->name}} </strong></td>
-                        @endif
-                    </tr>
-                    <tr>
-                        <td><strong>Teléfono:</strong></td>
-                        <td><strong>{{$customer->company->phone}}</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Email:</td>
-                        <td><strong>{{$customer->email}}</strong></td>
-                    </tr>
-                </table>
-            </td>
-            <td class="vertical-align-top" style="width: 40%; padding-left: 1rem">
-                <table>
-                    <tr>
-                        <td><strong>Forma de Pago:</strong></td>
-                        <td><strong>{{$paymentForm[0]->name}}</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Medios de Pago:</td>
-                        <td>
-                            @foreach ($paymentForm as $paymentF)
-                                <strong>{{$paymentF->nameMethod}}</strong><br>
-                            @endforeach
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>Plazo Para Pagar:</strong></td>
-                        <td><strong>{{$paymentForm[0]->duration_measure}} Dias</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Fecha Vencimiento:</strong></td>
-                        <td><strong>{{$paymentForm[0]->payment_due_date}}</strong></td>
-                    </tr>
-                    @if(isset($request['order_reference']['id_order']))
-                    <tr>
-                        <td><strong>Número Pedido:</strong></td>
-                        <td><strong>{{$request['order_reference']['id_order']}}</strong></td>
-                    </tr>
-                    @endif
-                    @if(isset($request['order_reference']['issue_date_order']))
-                    <tr>
-                        <td><strong>Fecha Pedido:</strong></td>
-                        <td><strong>{{$request['order_reference']['issue_date_order']}}</strong></td>
-                    </tr>
-                    @endif
-                    @if(isset($healthfields))
-                    <tr>
-                        <td><strong>Inicio Periodo Facturación:</strong></td>
-                        <td><strong>{{$healthfields->invoice_period_start_date}}</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Fin Periodo Facturación:</strong></td>
-                        <td><strong>{{$healthfields->invoice_period_end_date}}</strong></td>
-                    </tr>
-                    @endif
-                    @if(isset($request['number_account']))
-                    <tr>
-                        <td><strong>Número de cuenta:</strong></td>
-                        <td><strong>{{$request['number_account'] }}</strong></td>
-                    </tr>
-                    @endif
-                    @if(isset($request['deliveryterms']))
-                    <tr>
-                        <td><strong>Terminos de Entrega:</strong></td>
-                        <td><strong>{{$request['deliveryterms']['loss_risk_responsibility_code']}} - {{ $request['deliveryterms']['loss_risk'] }}</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>T.R.M:</strong></td>
-                        <td><strong>{{number_format($request['calculationrate'], 2)}}</strong></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Fecha T.R.M:</strong></td>
-                        <td><strong>{{$request['calculationratedate']}}</strong></td>
-                    </tr>
-                    <tr>
-                        @inject('currency', 'App\TypeCurrency')
-                        <td><strong>Tipo Moneda:</strong></td>
-                        <td><strong>{{$currency->findOrFail($request['idcurrency'])['name']}}</strong></td>
-                    </tr>
-                    @endif
-                </table>
-            </td>
-        </tr>
-    </table>
+<!-- Información del Cliente -->
+<table style="width: 100%; font-size: 10px; margin-top: 5px; border-collapse: collapse;">
+    <tr>
+        <td style="text-align: left; padding: 3px 0;">
+            <span><strong>CC o NIT:</strong> {{$customer->company->identification_number}}-{{$request->customer['dv'] ?? NULL}}</span> <br>
+            <span style="margin-left: 10px;"><strong>Cliente:</strong><b>{{$customer->name}}</b></span> <br>
+            <span style="margin-left: 10px;"><strong>Régimen:</strong> {{$customer->company->type_regime->name}}</span>
+            <span style="margin-left: 10px;"><strong>Obligación:</strong> {{$customer->company->type_liability->name}}</span> <br>
+            <span style="margin-left: 10px;"><strong>Dirección:</strong> {{$customer->company->address}}</span> <br>
+            <span style="margin-left: 10px;"><strong>Ciudad:</strong>
+                @if($customer->company->country->id == 46)
+                    {{$customer->company->municipality->name}} - {{$customer->company->country->name}}
+                @else
+                    {{$customer->company->municipality_name}} - {{$customer->company->state_name}} - {{$customer->company->country->name}}
+                @endif
+            </span>
+            <span style="margin-left: 10px;"><strong>Teléfono:</strong> {{$customer->company->phone}}</span> <br>
+            <span style="margin-left: 10px;"><strong>Email:</strong> {{$customer->email}}</span>
+        </td>
+    </tr>
+</table>
+
+<!-- Información de Pago y Referencias -->
+<table style="width: 100%; font-size: 10px; margin-top: 5px; border-collapse: collapse;">
+    <!-- Línea principal -->
+    <tr>
+        <td style="text-align: left; padding: 3px 0;">
+            <span><strong>Forma de Pago:</strong> {{$paymentForm[0]->name}}</span>
+            <span style="margin-left: 10px;"><strong>Medios de Pago:</strong>
+                @foreach ($paymentForm as $paymentF)
+                    {{$paymentF->nameMethod}}{{ !$loop->last ? ', ' : '' }}
+                @endforeach
+            </span> <br>
+            <span style="margin-left: 10px;"><strong>Plazo Para Pagar:</strong> {{$paymentForm[0]->duration_measure}} Días</span> <br>
+            <span style="margin-left: 10px;"><strong>Fecha Vencimiento:</strong> {{$paymentForm[0]->payment_due_date}}</span>
+        </td>
+    </tr>
+    <!-- Línea extra opcional -->
+    @if(isset($request['order_reference']['id_order']) ||
+        isset($request['order_reference']['issue_date_order']) ||
+        isset($healthfields) ||
+        isset($request['number_account']) ||
+        isset($request['deliveryterms']))
+    <tr>
+        <td style="text-align: left; padding: 3px 0;">
+            @if(isset($request['order_reference']['id_order']))
+                <span><strong>Número Pedido:</strong> {{$request['order_reference']['id_order']}}</span>
+            @endif
+            @if(isset($request['order_reference']['issue_date_order']))
+                <span style="margin-left: 10px;"><strong>Fecha Pedido:</strong> {{$request['order_reference']['issue_date_order']}}</span>
+            @endif
+            @if(isset($healthfields))
+                <span style="margin-left: 10px;"><strong>Inicio Periodo Facturación:</strong> {{$healthfields->invoice_period_start_date}}</span>
+                <span style="margin-left: 10px;"><strong>Fin Periodo Facturación:</strong> {{$healthfields->invoice_period_end_date}}</span>
+            @endif
+            @if(isset($request['number_account']))
+                <span style="margin-left: 10px;"><strong>Número de cuenta:</strong> {{$request['number_account']}}</span>
+            @endif
+            @if(isset($request['deliveryterms']))
+                <span style="margin-left: 10px;"><strong>Términos de Entrega:</strong> {{$request['deliveryterms']['loss_risk_responsibility_code']}} - {{$request['deliveryterms']['loss_risk']}}</span>
+                <span style="margin-left: 10px;"><strong>T.R.M:</strong> {{ number_format($request['calculationrate'], 2) }}</span>
+                <span style="margin-left: 10px;"><strong>Fecha T.R.M:</strong> {{$request['calculationratedate']}}</span>
+                <span style="margin-left: 10px;"><strong>Tipo Moneda:</strong>
+                    @inject('currency', 'App\TypeCurrency')
+                    {{$currency->findOrFail($request['idcurrency'])['name']}}
+                </span>
+            @endif
+        </td>
+    </tr>
+    @endif
+</table>
+
 
     <hr>
 
@@ -257,19 +218,11 @@
     @endisset
 
 
-        <table class="tabla-items" style="font-weight: bold;">
+            <table class="tabla-items" style="font-size: 10px; width:100%;">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Código</th>
-                    <th class="desc">Descripción</th>
-                    <th>Cant.</th>
-                    <th>UM</th>
-                    <th>Val. Unit</th>
-                    <th>IVA/IC</th>
-                    <th>Dcto</th>
-                    <th>%</th>
-                    <th>Val. Item</th>
+                    <th>Descripción</th>
+                    <th>Subtotal</th>
                 </tr>
             </thead>
             <tbody>
@@ -277,194 +230,184 @@
                 @foreach($request['invoice_lines'] as $item)
                     <?php $ItemNro = $ItemNro + 1; ?>
                     <tr>
-                        @inject('um', 'App\UnitMeasure')
-                        @if($item['description'] == 'Administración' or $item['description'] == 'Imprevisto' or $item['description'] == 'Utilidad')
-                            <td>{{$ItemNro}}</td>
-                            <td class="text-right">
-                                {{$item['code']}}
-                            </td>
-                            <td>{{$item['description']}}</td>
-                            <td class="text-right"></td>
-                            <td class="text-right"></td>
-                            <td class="text-right">{{number_format($item['price_amount'], 2)}}</td>
-                            <td class="text-right">{{number_format($item['tax_totals'][0]['tax_amount'], 2)}}</td>
-                            @if(isset($item['allowance_charges']))
-                                <td class="text-right">{{number_format($item['allowance_charges'][0]['amount'], 2)}}</td>
-                                <td class="text-right">{{number_format(($item['allowance_charges'][0]['amount'] * 100) / $item['allowance_charges'][0]['base_amount'], 2)}}</td>
+                        <td>
+                            @inject('um', 'App\UnitMeasure')
+                            @if($item['description'] == 'Administración' or $item['description'] == 'Imprevisto' or $item['description'] == 'Utilidad')
+                                <!-- Para ítems especiales se muestran guiones en cantidad y UM -->
+                                <strong>{{$ItemNro}} | {{$item['description']}}</strong> 
+                                | - 
+                                | - 
+                                | Val. Unit: {{ number_format($item['price_amount'], 2) }}
+                                | IVA: {{ number_format($item['tax_totals'][0]['tax_amount'], 2) }}
                             @else
-                                <td class="text-right">{{number_format("0", 2)}}</td>
-                                <td class="text-right">{{number_format("0", 2)}}</td>
-                            @endif
-                            <td class="text-right">{{number_format($item['invoiced_quantity'] * $item['price_amount'], 2)}}</td>
-                        @else
-                            <td>{{$ItemNro}}</td>
-                            <td>{{$item['code']}}</td>
-                            <td>
+                                <!-- Para ítems normales se muestran todos los datos en una misma línea -->
+                                <strong>{{$ItemNro}} | {{$item['description']}}</strong>
                                 @if(isset($item['notes']))
-                                    {{$item['description']}}
-                                    <p style="font-size: 10px">{{$item['notes']}}</p>
-                                @else
-                                    {{$item['description']}}
+                                    | {{$item['notes']}}
                                 @endif
-                            </td>
-                            <td class="text-right">{{number_format($item['invoiced_quantity'], 2)}}</td>
-                            <td class="text-right">{{$um->findOrFail($item['unit_measure_id'])['name']}}</td>
-
-                            @if(isset($item['tax_totals']))
-                                @if(isset($item['allowance_charges']))
-                                    <td class="text-right">{{number_format(($item['line_extension_amount'] + $item['allowance_charges'][0]['amount']) / $item['invoiced_quantity'], 2)}}</td>
-                                @else
-                                    <td class="text-right">{{number_format($item['line_extension_amount'] / $item['invoiced_quantity'], 2)}}</td>
-                                @endif
+                                | {{ number_format($item['invoiced_quantity'], 2) }} {{ $um->findOrFail($item['unit_measure_id'])['name'] }}
+                                | Val. Unit: 
+                                    @if(isset($item['allowance_charges']))
+                                        {{ number_format(($item['line_extension_amount'] + $item['allowance_charges'][0]['amount']) / $item['invoiced_quantity'], 2) }}
+                                    @else
+                                        {{ number_format($item['line_extension_amount'] / $item['invoiced_quantity'], 2) }}
+                                    @endif
+                                | IVA: 
+                                    @if(isset($item['tax_totals']))
+                                        @if(isset($item['tax_totals'][0]['tax_amount']))
+                                            {{ number_format($item['tax_totals'][0]['tax_amount'] / $item['invoiced_quantity'], 2) }}
+                                        @else
+                                            {{ number_format(0, 2) }}
+                                        @endif
+                                    @else
+                                        E
+                                    @endif
+                            @endif
+                        </td>
+                        <td class="text-right">
+                            @if($item['description'] == 'Administración' or $item['description'] == 'Imprevisto' or $item['description'] == 'Utilidad')
+                                {{ number_format($item['invoiced_quantity'] * $item['price_amount'], 2) }}
                             @else
                                 @if(isset($item['allowance_charges']))
-                                    <td class="text-right">{{number_format(($item['line_extension_amount'] + $item['allowance_charges'][0]['amount']) / $item['invoiced_quantity'], 2)}}</td>
+                                    @if(isset($item['tax_totals']))
+                                        {{ number_format($item['line_extension_amount'] + $item['tax_totals'][0]['tax_amount'], 2) }}
+                                    @else
+                                        {{ number_format($item['line_extension_amount'], 2) }}
+                                    @endif
                                 @else
-                                    <td class="text-right">{{number_format($item['line_extension_amount'] / $item['invoiced_quantity'], 2)}}</td>
+                                    {{ number_format($item['line_extension_amount'], 2) }}
                                 @endif
                             @endif
-
-                            @if(isset($item['tax_totals']))
-                                @if(isset($item['tax_totals'][0]['tax_amount']))
-                                    <td class="text-right">{{number_format($item['tax_totals'][0]['tax_amount'] / $item['invoiced_quantity'], 2)}}</td>
-                                @else
-                                    <td class="text-right">{{number_format(0, 2)}}</td>
-                                @endif
-                            @else
-                                <td class="text-right">E</td>
-                            @endif
-
-                            @if(isset($item['allowance_charges']))
-                                <td class="text-right">{{number_format($item['allowance_charges'][0]['amount'] / $item['invoiced_quantity'], 2)}}</td>
-                                <td class="text-right">{{number_format(($item['allowance_charges'][0]['amount'] * 100) / $item['allowance_charges'][0]['base_amount'], 2)}}</td>
-                                @if(isset($item['tax_totals']))
-                                    <td class="text-right">{{number_format(($item['line_extension_amount'] + ($item['tax_totals'][0]['tax_amount'])), 2)}}</td>
-                                @else
-                                    <td class="text-right">{{number_format(($item['line_extension_amount']), 2)}}</td>
-                                @endif
-                            @else
-                                <td class="text-right">{{number_format("0", 2)}}</td>
-                                <td class="text-right">{{number_format("0", 2)}}</td>
-                                <td class="text-right">{{number_format($item['invoiced_quantity'] * ($item['line_extension_amount'] / $item['invoiced_quantity']), 2)}}</td>
-                            @endif
-                        @endif
+                        </td>
+                    </tr>
+                    <!-- Línea punteada separadora a lo ancho de la tabla -->
+                    <tr>
+                        <td colspan="2" style="padding: 0; margin: 0;">
+                        <hr style="border: 0; border-top: 1px dashed #000; margin: 0;">
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
 
+        <!-- Tabla para IVA y Retenciones -->
+        <table class="tabla-impuestos" style="width:100%; font-size: 10px; margin-top: 8px;">
+            <tr>
+                <!-- Columna de IVA -->
+                <td style="width:50%; vertical-align: top; border-right: 1px solid #ccc; padding-right: 10px;">
+                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">IVA</div>
+                    @if(isset($request->tax_totals))
+                        <?php $TotalImpuestos = 0; ?>
+                        @foreach($request->tax_totals as $item)
+                            <?php $TotalImpuestos += $item['tax_amount']; ?>
+                            @inject('tax', 'App\Tax')
+                            <div style="padding: 3px 0;">
+                                {{$tax->findOrFail($item['tax_id'])['name']}} ({{ number_format($item['percent'], 2) }}%): 
+                                {{ number_format($item['tax_amount'], 2) }}
+                            </div>
+                        @endforeach
+                    @else
+                        <div style="text-align: center;">No hay impuestos</div>
+                    @endif
+                </td>
 
-    {{--seccion de immpuestos --}}
-
-            <!-- Tabla para IVA y Retenciones -->
-            <table class="tabla-impuestos" style="font-weight: bold;">
-                <tr>
-                    <!-- Columna de IVA -->
-                    <td style="width: 50%; text-align: center;">
-                        <strong>IVA</strong><br>
-                        @if(isset($request->tax_totals))
-                            <?php $TotalImpuestos = 0; ?>
-                            @foreach($request->tax_totals as $item)
-                                <?php $TotalImpuestos += $item['tax_amount']; ?>
-                                @inject('tax', 'App\Tax')
-                                <div>{{$tax->findOrFail($item['tax_id'])['name']}} {{number_format($item['percent'], 2)}}%: {{number_format($item['tax_amount'], 2)}}</div>
-                            @endforeach
-                        @endif
-                    </td>
-
-                    <!-- Columna de Retenciones -->
-                    <td style="width: 50%; text-align: center;">
-                        <strong>Retenciones</strong><br>
-                        @if(isset($withHoldingTaxTotal))
-                            <?php $TotalRetenciones = 0; ?>
-                            @foreach($withHoldingTaxTotal as $item)
-                                <?php $TotalRetenciones += $item['tax_amount']; ?>
-                                @inject('tax', 'App\Tax')
-                                <div>{{$tax->findOrFail($item['tax_id'])['name']}}: {{number_format($item['tax_amount'], 2)}}</div>
-                            @endforeach
-                        @endif
-                    </td>
-                </tr>
-            </table>
+                <!-- Columna de Retenciones -->
+                <td style="width:50%; vertical-align: top; padding-left: 10px;">
+                    <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">Retenciones</div>
+                    @if(isset($withHoldingTaxTotal))
+                        <?php $TotalRetenciones = 0; ?>
+                        @foreach($withHoldingTaxTotal as $item)
+                            <?php $TotalRetenciones += $item['tax_amount']; ?>
+                            @inject('tax', 'App\Tax')
+                            <div style="padding: 3px 0;">
+                                {{$tax->findOrFail($item['tax_id'])['name']}}: 
+                                {{ number_format($item['tax_amount'], 2) }}
+                            </div>
+                        @endforeach
+                    @else
+                        <div style="text-align: center;">No hay retenciones</div>
+                    @endif
+                </td>
+            </tr>
+        </table>
 
             <!-- Tabla para Totales -->
-            <!-- Tabla para Totales, incluyendo la información adicional -->
-            <table class="tabla-totales" style="margin-top: 8px; font-weight: bold;">
+            <table class="tabla-totales" style="margin-top: 8px; width: 100%;">
                 <tr>
-                    <th>Nro Lineas</th>
-                    <td>{{$ItemNro}}</td>
+                    <th style="text-align: left; font-weight: normal;">Nro Lineas</th>
+                    <td style="text-align: right; font-weight: normal;">{{$ItemNro}}</td>
                 </tr>
                 <tr>
-                    <th>Base</th>
-                    <td>{{number_format($request->legal_monetary_totals['line_extension_amount'], 2)}}</td>
+                    <th style="text-align: left; font-weight: normal;">Base</th>
+                    <td style="text-align: right; font-weight: normal;">{{ number_format($request->legal_monetary_totals['line_extension_amount'], 2) }}</td>
                 </tr>
                 <tr>
-                    <th>Impuestos</th>
-                    <td>{{number_format($TotalImpuestos, 2)}}</td>
+                    <th style="text-align: left; font-weight: normal;">Impuestos</th>
+                    <td style="text-align: right; font-weight: normal;">{{ number_format($TotalImpuestos, 2) }}</td>
                 </tr>
                 <tr>
-                    <th>Retenciones</th>
-                    <td>{{number_format($TotalRetenciones, 2)}}</td>
+                    <th style="text-align: left; font-weight: normal;">Retenciones</th>
+                    <td style="text-align: right; font-weight: normal;">{{ number_format($TotalRetenciones, 2) }}</td>
                 </tr>
                 @if(isset($request->legal_monetary_totals['allowance_total_amount']))
                     <tr>
-                        <th>Descuentos</th>
-                        <td>{{number_format($request->legal_monetary_totals['allowance_total_amount'], 2)}}</td>
+                        <th style="text-align: left; font-weight: normal;">Descuentos</th>
+                        <td style="text-align: right; font-weight: normal;">{{ number_format($request->legal_monetary_totals['allowance_total_amount'], 2) }}</td>
                     </tr>
                 @endif
                 @if(isset($request->previous_balance) && $request->previous_balance > 0)
                     <tr>
-                        <th>Saldo Anterior</th>
-                        <td>{{number_format($request->previous_balance, 2)}}</td>
+                        <th style="text-align: left; font-weight: normal;">Saldo Anterior</th>
+                        <td style="text-align: right; font-weight: normal;">{{ number_format($request->previous_balance, 2) }}</td>
                     </tr>
                 @endif
                 <!-- Calculo de Total Factura - Descuentos -->
                 <tr>
-                    <td><b>Total Factura - Descuentos:</b></td>
+                    <td style="text-align: left; font-weight: normal;">Total Factura - Descuentos:</td>
                     @if(isset($request->tarifaica))
                         @if(isset($request->legal_monetary_totals['allowance_total_amount']))
                             @if(isset($request->previous_balance))
-                                <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2)}}</td>
+                                <td style="text-align: right; font-weight: normal;">{{ number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2) }}</td>
                             @else
-                                <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2)}}</td>
+                                <td style="text-align: right; font-weight: normal;">{{ number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2) }}</td>
                             @endif
                         @else
                             @if(isset($request->previous_balance))
-                                <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + 0 + $request->previous_balance - $TotalRetenciones, 2)}}</td>
+                                <td style="text-align: right; font-weight: normal;">{{ number_format($request->legal_monetary_totals['payable_amount'] + 0 + $request->previous_balance - $TotalRetenciones, 2) }}</td>
                             @else
-                                <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + 0 - $TotalRetenciones, 2)}}</td>
+                                <td style="text-align: right; font-weight: normal;">{{ number_format($request->legal_monetary_totals['payable_amount'] + 0 - $TotalRetenciones, 2) }}</td>
                             @endif
                         @endif
                     @else
                         @if(isset($request->previous_balance))
-                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2)}}</td>
+                            <td style="text-align: right; font-weight: normal;">{{ number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2) }}</td>
                         @else
-                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2)}}</td>
+                            <td style="text-align: right; font-weight: normal;">{{ number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2) }}</td>
                         @endif
                     @endif
                 </tr>
-
+                <!-- Total a Pagar -->
                 <tr>
-                    <td><b>Total a Pagar</b></td>
+                    <td style="text-align: left; font-weight: bold; font-size: 16px;">Total a Pagar</td>
                     @if(isset($request->tarifaica))
                         @if(isset($request->legal_monetary_totals['allowance_total_amount']))
                             @if(isset($request->previous_balance))
-                                <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2)}}</td>
+                                <td style="text-align: right; font-size: 16px; font-weight: bold;">{{ number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2) }}</td>
                             @else
-                                <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2)}}</td>
+                                <td style="text-align: right; font-size: 16px; font-weight: bold;">{{ number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2) }}</td>
                             @endif
                         @else
                             @if(isset($request->previous_balance))
-                                <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + 0 + $request->previous_balance - $TotalRetenciones, 2)}}</td>
+                                <td style="text-align: right; font-size: 16px; font-weight: bold;">{{ number_format($request->legal_monetary_totals['payable_amount'] + 0 + $request->previous_balance - $TotalRetenciones, 2) }}</td>
                             @else
-                                <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + 0 - $TotalRetenciones, 2)}}</td>
+                                <td style="text-align: right; font-size: 16px; font-weight: bold;">{{ number_format($request->legal_monetary_totals['payable_amount'] + 0 - $TotalRetenciones, 2) }}</td>
                             @endif
                         @endif
                     @else
                         @if(isset($request->previous_balance))
-                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2)}}</td>
+                            <td style="text-align: right; font-size: 16px; font-weight: bold;">{{ number_format($request->legal_monetary_totals['payable_amount'] + $request->previous_balance - $TotalRetenciones, 2) }}</td>
                         @else
-                            <td class="text-right">{{number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2)}}</td>
+                            <td style="text-align: right; font-size: 16px; font-weight: bold;">{{ number_format($request->legal_monetary_totals['payable_amount'] - $TotalRetenciones, 2) }}</td>
                         @endif
                     @endif
                 </tr>
@@ -540,23 +483,25 @@
     --}}
 
     <!-- Footer -->
-<div id="footer" style="font-size: 9px; text-align: center; margin-top: 10px; font-weight: bold;">
-    <hr style="margin-bottom: 4px;">
-    <p id='mi-texto'>
-        Factura No: {{$resolution->prefix}} - {{$request->number}}<br>
-        Fecha y Hora de Generación: {{$date}} - {{$time}}<br>
-        <strong> CUFE: {{$cufecude}}</strong>
-    </p>
+    <div id="footer" style="font-size: 13px; text-align: center; margin-top: -10px; font-weight: bold;">
+        <hr style="margin-bottom: 4px;">
+        <p id='mi-texto'>
+            Factura No: {{$resolution->prefix}} - {{$request->number}}<br>
+            Fecha y Hora de Generación: {{$date}} - {{$time}}<br>
+            <strong> CUFE: {{$cufecude}}</strong>
+        </p>
 
-    <div style="text-align: center;">
-        <img style="width: 70%;" src="{{$imageQr}}">
+        <div style="text-align: center;">
+            <img style="width: 70%;" src="{{$imageQr}}">
+        </div>
     </div>
+    
+    <div id="footer" style="font-size: 13px; text-align: center;">
+        @isset($request->foot_note)
+            <p id='mi-texto-1'>{{$request->foot_note}}</p>
+        @endisset
 
-    @isset($request->foot_note)
-        <p id='mi-texto-1'>{{$request->foot_note}}</p>
-    @endisset
-
-    <h3> GRACIAS POR SU COMPRA</h3>
-</div>
+        <h3> GRACIAS POR SU COMPRA</h3>
+    </div>
 </body>
 </html>
