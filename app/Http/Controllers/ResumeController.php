@@ -192,13 +192,12 @@ class ResumeController extends Controller
 
     public function information_by_page($nit, $page)
     {
-        if($page <= 0)
+        if ($page <= 0)
             $page = 1;
 
         $company = Company::where('identification_number', $nit)->first();
 
-        if(!$company)
-        {
+        if (!$company) {
             return [
                 'success' => false,
                 'message' => 'No se encontraron datos del NIT',
@@ -206,42 +205,61 @@ class ResumeController extends Controller
         }
 
         $perPage = 100;
-
-        $i = Document::where('state_document_id', 1)->where('identification_number', $company->identification_number)->where('type_document_id', 1)->skip(($page - 1) * $perPage)->take($perPage)->oldest()->get();
-        $c = Document::where('state_document_id', 1)->where('identification_number', $company->identification_number)->where('type_document_id', 4)->skip(($page - 1) * $perPage)->take($perPage)->oldest()->get();
-        $d = Document::where('state_document_id', 1)->where('identification_number', $company->identification_number)->where('type_document_id', 5)->skip(($page - 1) * $perPage)->take($perPage)->oldest()->get();
-        $p = Document::where('state_document_id', 1)->where('identification_number', $company->identification_number)->where('type_document_id', 15)->skip(($page - 1) * $perPage)->take($perPage)->oldest()->get();
-
-        $invoice = (object)[
-            'name' => 'Factura de Venta Nacional',
-            'count' => count($i),
-            'documents' => $i
+        $selectFields = [
+            'id', 'identification_number', 'state_document_id', 'type_document_id',
+            'customer', 'prefix', 'number', 'xml', 'cufe', 'client_id', 'currency_id',
+            'date_issue', 'sale', 'total_discount', 'total_tax', 'subtotal', 'total',
+            'created_at', 'pdf', 'request_api'
         ];
 
-        $credit_note = (object)[
-            'name' => 'Nota Credito',
-            'count' => count($c),
-            'documents' => $c
+        $documentTypes = [
+            ['name' => 'Factura de Venta Nacional', 'type_id' => 1],
+            ['name' => 'Nota Credito', 'type_id' => 4],
+            ['name' => 'Nota Debito', 'type_id' => 5],
+            ['name' => 'Documento Equivalente POS', 'type_id' => 15],
         ];
 
-        $debit_note = (object)[
-            'name' => 'Nota Debito',
-            'count' => count($d),
-            'documents' => $d
-        ];
+        $result = [];
 
-        $pos = (object)[
-            'name' => 'Documento Equivalente POS',
-            'count' => count($p),
-            'documents' => $p
-        ];
+        foreach ($documentTypes as $type) {
+            $documents = Document::where('state_document_id', 1)
+                ->where('identification_number', $company->identification_number)
+                ->where('type_document_id', $type['type_id'])
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->oldest()
+                ->select($selectFields)
+                ->get();
+
+            // Limpieza del campo firma_facturacion dentro de request_api
+            foreach ($documents as $doc) {
+                $raw = $doc->request_api;
+
+                if (is_string($raw)) {
+                    $decoded = json_decode($raw, true);
+                } elseif (is_object($raw) || is_array($raw)) {
+                    $decoded = (array) $raw;
+                } else {
+                    $decoded = [];
+                }
+
+                unset($decoded['firma_facturacion']); // eliminamos el campo
+
+                $doc->request_api = json_encode($decoded); // volvemos a guardar como JSON
+            }
+
+            $result[] = (object)[
+                'name' => $type['name'],
+                'count' => count($documents),
+                'documents' => $documents
+            ];
+        }
 
         return [
             'success' => true,
             'message' => 'NIT Encontrado',
-            'data'=> array($invoice, $credit_note, $debit_note, $pos),
+            'data' => $result,
             'company' => $company->user->name
         ];
     }
-
 }
