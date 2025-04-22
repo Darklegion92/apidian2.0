@@ -150,7 +150,8 @@ class InvoiceTransportRequest extends FormRequest
             // Customer
             'customer' => 'required|array',
             'customer.identification_number' => 'required|alpha_num|between:1,15',
-            'customer.dv' => 'nullable|numeric|digits:1|dian_dv:'.$this->customer["identification_number"],
+            'customer.dv' => 'nullable|numeric|digits:1|dian_dv:'.$this->input('customer.identification_number'),
+//            'customer.dv' => 'nullable|numeric|digits:1|dian_dv:'.$this->customer["identification_number"],
             'customer.type_document_identification_id' => 'nullable|exists:type_document_identifications,id',
             'customer.type_organization_id' => 'nullable|exists:type_organizations,id',
             'customer.language_id' => 'nullable|exists:languages,id',
@@ -165,7 +166,8 @@ class InvoiceTransportRequest extends FormRequest
 //            'customer.phone' => 'required_unless:customer.identification_number,222222222222|string|max:20',
             'customer.address' => 'nullable|string',
 //            'customer.address' => 'required_unless:customer.identification_number,222222222222|string',
-            'customer.email' => 'required_unless:customer.identification_number,222222222222|string|email',
+            'customer.email' => 'nullable|string|email',
+//            'customer.email' => 'required_unless:customer.identification_number,222222222222|string|email',
 //            'customer.merchant_registration' => 'required|string',
             'customer.merchant_registration' => 'nullable|string',
 
