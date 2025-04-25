@@ -288,7 +288,7 @@ class InvoiceController extends Controller
         $this->ActualizarTablas();
 
         // Verificar si ya se envio la factura con anterioridad
-        $invoice_doc = Document::where('prefix', $request->prefix)->where('number', $request->number)->where('state_document_id', '=', 2)->get();
+        $invoice_doc = Document::where('identification_number', $company->identification_number)->where('prefix', $request->prefix)->where('number', $request->number)->where('state_document_id', '=', 2)->get();
         if(count($invoice_doc) > 0){
             $typeD = TypeDocument::where('id', $invoice_doc[0]->type_document_id)->first();
             return[
