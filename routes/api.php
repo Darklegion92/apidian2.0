@@ -88,6 +88,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/name-by-nit/{nit}', 'Api\MiscelaneousController@nameByNit');
         Route::get('/SearchCompany/{nit}', 'Api\MiscelaneousController@SearchCompany');
         Route::get('/query_rut', 'Api\MiscelaneousController@query_rut');
+        Route::post('/query_rut', 'Api\MiscelaneousController@query_rut');
 
         // Register Customer
         Route::put('/register-update-customer', 'Api\ConfigurationController@RegCustomer');
