@@ -210,7 +210,7 @@
                     </tr>
                 </tbody>
             </table>
-            @isset($request['spd'][$i]['subscriber_consumption']['utiliy_meter'])
+            @isset($request['spd'][$i]['subscriber_consumption']['utility_meter'])
                 <table class="table" style="width: 100%;">
                     <thead>
                         <tr>
@@ -226,13 +226,13 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utiliy_meter']['meter_number']}}</td>
-                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utiliy_meter']['previous_meter_reading_date']}}</td>
-                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utiliy_meter']['previous_meter_quantity']}}</td>
-                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utiliy_meter']['latest_meter_reading_date']}}</td>
-                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utiliy_meter']['latest_meter_quantity']}}</td>
-                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utiliy_meter']['meter_reading_method']}}</td>
-                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utiliy_meter']['duration_measure']}}</td>
+                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utility_meter']['meter_number']}}</td>
+                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utility_meter']['previous_meter_reading_date']}}</td>
+                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utility_meter']['previous_meter_quantity']}}</td>
+                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utility_meter']['latest_meter_reading_date']}}</td>
+                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utility_meter']['latest_meter_quantity']}}</td>
+                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utility_meter']['meter_reading_method']}}</td>
+                            <td class="text-right" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['utility_meter']['duration_measure']}}</td>
                             <td class="text-left" style="font-size: 8px">{{$request['spd'][$i]['subscriber_consumption']['unstructured_price']['price_amount']}}</td>
                         </tr>
                     </tbody>
