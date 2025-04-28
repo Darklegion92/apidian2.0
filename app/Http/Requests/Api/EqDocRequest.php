@@ -112,6 +112,8 @@ class EqDocRequest extends FormRequest
             'spd.*.agency_information.type_spd_id' => 'required_with:spd.*.agency_information|exists:type_spds,id|integer',
             'spd.*.agency_information.contract_number' => 'required_with:spd.*.agency_information|string',
             'spd.*.agency_information.issue_date' => 'required_with:spd.*.agency_information|date_format:Y-m',
+            'spd.*.agency_information.start_period_date'  => 'nullable|date_format:Y-m-d',
+            'spd.*.agency_information.end_period_date'  => 'nullable|date_format:Y-m-d',
             'spd.*.agency_information.note' => 'required_with:spd.*.agency_information|string',
             'spd.*.subscriber_party' => 'required_with:spd|array',
             'spd.*.subscriber_party.party_name' => 'required_with:spd.*.subscriber_party|string',

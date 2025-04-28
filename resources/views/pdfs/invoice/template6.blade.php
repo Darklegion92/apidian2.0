@@ -5,7 +5,6 @@
 </head>
 
 <body margin-top:50px>
-    <hr style="height: 3px; background-color: rgb(6, 103, 194) ; border: none;">
     @if(isset($request->head_note))
     <div class="row">
         <div class="col-sm-12">
