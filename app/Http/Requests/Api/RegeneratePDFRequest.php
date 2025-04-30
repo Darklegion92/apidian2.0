@@ -170,7 +170,7 @@ class RegeneratePDFRequest extends FormRequest
 
             // Customer
             'customer' => 'nullable|array',
-            'customer.identification_number' => 'nullable|alpha_num|between:1,15',
+            'customer.identification_number' => 'nullable|alpha_num|between:1,22',
 //            'customer.dv' => 'nullable|numeric|digits:1|dian_dv:'.$this->customer["identification_number"],
             'customer.type_document_identification_id' => 'nullable|exists:type_document_identifications,id',
             'customer.type_organization_id' => 'nullable|exists:type_organizations,id',
@@ -189,7 +189,7 @@ class RegeneratePDFRequest extends FormRequest
 
             // Seller
             'seller' => 'nullable|array',
-            'seller.identification_number' => 'nullable|alpha_num|between:1,15',
+            'seller.identification_number' => 'nullable|alpha_num|between:1,22',
 //            'seller.dv' => 'nullable|numeric|digits:1|dian_dv:'.$this->seller["identification_number"],
             'seller.type_document_identification_id' => 'nullable|exists:type_document_identifications,id',
             'seller.type_organization_id' => 'nullable|exists:type_organizations,id',
@@ -462,7 +462,7 @@ class RegeneratePDFRequest extends FormRequest
             'worker.municipality_id' => 'nullable|exists:municipalities,id',
             'worker.type_contract_id' => 'nullable|exists:type_contracts,id',
             'worker.high_risk_pension' => 'nullable|boolean',
-            'worker.identification_number' => 'nullable|alpha_num|between:1,15',
+            'worker.identification_number' => 'nullable|alpha_num|between:1,22',
             'worker.surname' => 'nullable|string',
             'worker.second_surname' => 'nullable|string',
             'worker.first_name' => 'nullable|string',

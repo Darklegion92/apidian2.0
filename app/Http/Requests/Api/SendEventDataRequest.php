@@ -54,7 +54,7 @@ class SendEventDataRequest extends FormRequest
 //            // Customer
 ////            'customer' => 'nullable|required_without:seller|array',
 //            'customer' => 'nullable|array',
-//            'customer.identification_number' => 'required_with:customer|alpha_num|between:1,15',
+//            'customer.identification_number' => 'required_with:customer|alpha_num|between:1,22',
 //            'customer.type_document_identification_id' => 'required_with:customer|exists:type_document_identifications,id',
 //            'customer.type_organization_id' => 'required_with:customer|exists:type_organizations,id',
 //            'customer.type_regime_id' => 'required_with:customer|exists:type_regimes,id',
@@ -66,7 +66,7 @@ class SendEventDataRequest extends FormRequest
 //            // Seller
 ////            'seller' => 'nullable|required_without:customer|array',
 //            'seller' => 'nullable|array',
-//            'seller.identification_number' => 'required_with:seller|alpha_num|between:1,15',
+//            'seller.identification_number' => 'required_with:seller|alpha_num|between:1,22',
 //            'seller.type_document_identification_id' => 'required_with:seller|exists:type_document_identifications,id',
 //            'seller.type_organization_id' => 'required_with:seller|exists:type_organizations,id',
 //            'seller.type_regime_id' => 'required_with:seller|exists:type_regimes,id',

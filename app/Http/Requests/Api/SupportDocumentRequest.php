@@ -137,7 +137,7 @@ class SupportDocumentRequest extends FormRequest
 
             // Seller
             'seller' => 'required|array',
-            'seller.identification_number' => 'required|alpha_num|between:1,15',
+            'seller.identification_number' => 'required|alpha_num|between:1,22',
             'seller.dv' => 'nullable|numeric|digits:1|dian_dv:'.$this->seller["identification_number"],
             'seller.type_document_identification_id' => 'nullable|exists:type_document_identifications,id',
             'seller.type_organization_id' => 'nullable|exists:type_organizations,id',

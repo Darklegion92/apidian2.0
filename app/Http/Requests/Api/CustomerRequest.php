@@ -26,7 +26,7 @@ class CustomerRequest extends FormRequest
     {
         return [
             // Customer
-            'identification_number' => 'required|alpha_num|between:1,15',
+            'identification_number' => 'required|alpha_num|between:1,22',
             'dv' => 'nullable|numeric|digits:1',
             'name' => 'required|string',
             'phone' => 'required|numeric|digits_between:7,10',

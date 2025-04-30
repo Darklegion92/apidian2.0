@@ -149,7 +149,7 @@ class InvoiceTransportRequest extends FormRequest
 
             // Customer
             'customer' => 'required|array',
-            'customer.identification_number' => 'required|alpha_num|between:1,15',
+            'customer.identification_number' => 'required|alpha_num|between:1,22',
             'customer.dv' => 'nullable|numeric|digits:1|dian_dv:'.$this->input('customer.identification_number'),
 //            'customer.dv' => 'nullable|numeric|digits:1|dian_dv:'.$this->customer["identification_number"],
             'customer.type_document_identification_id' => 'nullable|exists:type_document_identifications,id',

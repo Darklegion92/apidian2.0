@@ -132,7 +132,7 @@ class PayrollRequest extends FormRequest
             'worker.municipality_id' => 'required|exists:municipalities,id',
             'worker.type_contract_id' => 'required|exists:type_contracts,id',
             'worker.high_risk_pension' => 'required|boolean',
-            'worker.identification_number' => 'required|alpha_num|between:1,15',
+            'worker.identification_number' => 'required|alpha_num|between:1,22',
             'worker.surname' => 'required|string',
             'worker.second_surname' => 'nullable|string',
             'worker.first_name' => 'required|string',
