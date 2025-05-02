@@ -89,10 +89,10 @@
             <img  style="width: 150px; height: auto;" src="{{$imgLogo}}" alt="logo">
             <div class="text-center vertical-align-top">
                 @if (isset($request['payment_reference']))
-                    <p style="color: green; font-weight: bold; font-size: 11px;">REFERENCIA DE PAGO: {{$request['payment_reference']}}</p>
+                    <p style="color: green; font-weight: bold; font-size: 8px;">REFERENCIA DE PAGO: {{$request['payment_reference']}}</p>
                 @endif
                 @if (isset($request['last_valid_payment_date']))
-                    <p style="color: green; font-weight: bold; font-size: 11px;">ULTIMO PAGO REGISTRADO: {{$request['last_valid_payment_date']}}</p>
+                    <p style="color: green; font-weight: bold; font-size: 8px;">ULTIMO PAGO REGISTRADO: {{$request['last_valid_payment_date']}}</p>
                 @endif
             </div>
         </td>
