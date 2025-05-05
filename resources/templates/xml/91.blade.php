@@ -51,10 +51,6 @@
     @isset($invoice_period)
         @include('xml._invoice_period', ['node' => 'InvoicePeriod'])
     @endisset
-    {{-- OrderReference --}}
-    @isset($orderreference)
-        @include('xml._order_reference', ['node' => 'OrderReference'])
-    @endisset
     @isset($request->additional_document_reference)
         @include('xml._additional_document_reference_general', ['node' => 'request'])
     @endisset
@@ -64,6 +60,10 @@
             @include('xml._discrepancy_response')
         @endisset
     @endif
+    {{-- OrderReference --}}
+    @isset($orderreference)
+        @include('xml._order_reference', ['node' => 'OrderReference'])
+    @endisset
     {{-- BillingReference --}}
     @isset($request['billing_reference'])
         @include('xml._billing_reference')

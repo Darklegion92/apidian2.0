@@ -210,7 +210,7 @@
                     </tr>
                 </tbody>
             </table>
-            @isset($request['spd'][$i]['subscriber_consumption']['utility_meter'])
+            @if(isset($request['spd'][$i]['subscriber_consumption']['utility_meter']))
                 <table class="table" style="width: 100%;">
                     <thead>
                         <tr>
@@ -237,7 +237,7 @@
                         </tr>
                     </tbody>
                 </table>
-            @endisset
+            @endif
             <table class="table" style="width: 100%;">
                 <thead>
                     <tr>

@@ -50,12 +50,12 @@
     @isset($invoice_period)
         @include('xml._invoice_period', ['node' => 'InvoicePeriod'])
     @endisset
+    @isset($request->additional_document_reference)
+        @include('xml._additional_document_reference_general', ['node' => 'request'])
+    @endisset
     {{-- OrderReference --}}
     @isset($orderreference)
         @include('xml._order_reference', ['node' => 'OrderReference'])
-    @endisset
-    @isset($request->additional_document_reference)
-        @include('xml._additional_document_reference_general', ['node' => 'request'])
     @endisset
     {{-- DiscrepancyResponse --}}
     @if($typeDocument->id != 25)
