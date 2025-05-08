@@ -34,6 +34,7 @@ use App\Mail\PasswordEmployeeMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
+use App\Http\Requests\Api\InvoiceRequest;
 use App\Http\Controllers\Api\ConfigurationController;
 use DateTime;
 use Carbon\Carbon;
@@ -445,6 +446,15 @@ trait DocumentTrait
                 }
                 $imageQr    =  "data:image/png;base64, ".$qrBase64;
 
+                if (isset($request->currency_id) && $request->currency_id != 35 && isset($request->calculationrate) && $request->calculationrate > 0) {
+                    $rate = $request->calculationrate;
+                    // Convertimos el objeto Request a array, aplicamos la conversión, luego volvemos a stdClass
+                    $originalArray = $request->all(); // aquí sí es un Request válido
+                    $convertedRequestArray = $this->divideMonetaryValues($originalArray, $rate);
+                    // Lo volvemos stdClass para que el blade lo lea como objeto (->propiedad)
+//                    $request = json_decode(json_encode($convertedRequestArray));
+                    $request = new InvoiceRequest($convertedRequestArray);
+                }
                 if($template_json){
                     if($tipodoc == 'POS')
                         $pdf = $this->initMPdf('pos', $template_pdf);
@@ -728,6 +738,22 @@ trait DocumentTrait
             }
             $pdf->Output($filename);
             return $QRStr;
+    }
+
+    // Función recursiva para procesar los valores
+    public function divideMonetaryValues($data, $rate) {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->divideMonetaryValues($value, $rate);
+            }
+            else {
+                // Detectar claves que representan montos
+                if (is_numeric($value) && preg_match('/line_extension_amount|tax_exclusive_amount|tax_inclusive_amount|allowance_total_amount|charge_total_amount|payable_amount|tax_amount|taxable_amount|amount|base_amount|price_amount/i', $key)) {
+                    $data[$key] = number_format($value / $rate, 2, '.', '');
+                }
+            }
+        }
+        return $data;
     }
 
     /**

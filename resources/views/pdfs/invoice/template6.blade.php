@@ -5,6 +5,7 @@
 </head>
 
 <body margin-top:50px>
+    <hr style="height: 3px; background-color: rgb(6, 103, 194) ; border: none;">
     @if(isset($request->head_note))
     <div class="row">
         <div class="col-sm-12">
@@ -107,7 +108,7 @@
                         <td style="padding: 0;">{{$request['number_account'] }}</td>
                     </tr>
                     @endif
-                    @if(isset($request['deliveryterms']))
+                    @if(isset($request['deliveryterms']) && $request['deliveryterms'] !== null)
                     <tr>
                         <td style="padding: 0; width: 50%;">Terminos de Entrega:</td>
                         <td style="padding: 0;">{{$request['deliveryterms']['loss_risk_responsibility_code']}} - {{ $request['deliveryterms']['loss_risk'] }}</td>
@@ -134,6 +135,17 @@
                         <td style="padding: 0; width: 50%;">Fecha Vencimiento:</td>
                         <td style="padding: 0;">{{$paymentForm[0]->payment_due_date}}</td>
                     </tr>
+                    @if($request['currency_id'] != 35 && $request['currency_id'] !== null)
+                        @inject('currency', 'App\TypeCurrency')
+                        <tr>
+                            <td style="padding: 0; width: 50%;">Tipo Moneda:</td>
+                            <td style="padding: 0;">{{$currency->where('id', 'like', $request['currency_id'].'%')->firstOrFail()['name']}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0; width: 50%;">T.R.M:</td>
+                            <td style="padding: 0;">{{number_format($request['calculationrate'], 2)}}</td>
+                        </tr>
+                    @endif
                 </table>
             </td>
         </tr>
