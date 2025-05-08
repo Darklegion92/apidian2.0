@@ -29,7 +29,7 @@
     <!-- Información Adicional y Condiciones, Resolución -->
     <tr>
         <td style="text-align: center; margin-top: 5px;">
-            <strong>Regimen: {{$company->type_regime->name}}</strong> - 
+            <strong>Regimen: {{$company->type_regime->name}}</strong> -
             <strong>Obligacion: {{$company->type_liability->name}}</strong>
             @if(isset($request->nombretipodocid))
                 - <strong>Tipo Documento ID: {{$request->nombretipodocid}}</strong>
@@ -56,7 +56,7 @@
             @endif
         </td>
     </tr>
-    <!-- Información de Contacto del Establecimiento 
+    <!-- Información de Contacto del Establecimiento
     <tr>
         <td style="text-align: center; margin-top: 5px;">
             @if(isset($request->establishment_address))
@@ -142,6 +142,17 @@
             <span style="margin-left: 10px;"><strong>Fecha Vencimiento:</strong> {{$paymentForm[0]->payment_due_date}}</span>
         </td>
     </tr>
+    @if($request['currency_id'] != 35 && $request['currency_id'] !== null)
+        @inject('currency', 'App\TypeCurrency')
+        <tr>
+            <td style="padding: 0; width: 50%;">Tipo Moneda:</td>
+            <td style="padding: 0;">{{$currency->where('id', 'like', $request['currency_id'].'%')->firstOrFail()['name']}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 0; width: 50%;">T.R.M:</td>
+            <td style="padding: 0;">{{number_format($request['calculationrate'], 2)}}</td>
+        </tr>
+    @endif
     <!-- Línea extra opcional -->
     @if(isset($request['order_reference']['id_order']) ||
         isset($request['order_reference']['issue_date_order']) ||
@@ -234,9 +245,9 @@
                             @inject('um', 'App\UnitMeasure')
                             @if($item['description'] == 'Administración' or $item['description'] == 'Imprevisto' or $item['description'] == 'Utilidad')
                                 <!-- Para ítems especiales se muestran guiones en cantidad y UM -->
-                                <strong>{{$ItemNro}} | {{$item['description']}}</strong> 
-                                | - 
-                                | - 
+                                <strong>{{$ItemNro}} | {{$item['description']}}</strong>
+                                | -
+                                | -
                                 | Val. Unit: {{ number_format($item['price_amount'], 2) }}
                                 | IVA: {{ number_format($item['tax_totals'][0]['tax_amount'], 2) }}
                             @else
@@ -246,13 +257,13 @@
                                     | {{$item['notes']}}
                                 @endif
                                 | {{ $um->findOrFail($item['unit_measure_id'])['name'] }} : {{ number_format($item['invoiced_quantity'], 2) }}
-                                | Val. Unit: 
+                                | Val. Unit:
                                     @if(isset($item['allowance_charges']))
                                         {{ number_format(($item['line_extension_amount'] + $item['allowance_charges'][0]['amount']) / $item['invoiced_quantity'], 2) }}
                                     @else
                                         {{ number_format($item['line_extension_amount'] / $item['invoiced_quantity'], 2) }}
                                     @endif
-                                | IVA: 
+                                | IVA:
                                     @if(isset($item['tax_totals']))
                                         @if(isset($item['tax_totals'][0]['tax_amount']))
                                             {{ number_format($item['tax_totals'][0]['tax_amount'] / $item['invoiced_quantity'], 2) }}
@@ -262,7 +273,7 @@
                                     @else
                                         E
                                     @endif
-                                    |  
+                                    |
                                     @if(isset($item['allowance_charges']))
                                        DESCUENTO:
                                        {{number_format(($item['allowance_charges'][0]['amount'] * 100) / $item['allowance_charges'][0]['base_amount'], 2)}}%
@@ -312,7 +323,7 @@
                             <?php $TotalImpuestos += $item['tax_amount']; ?>
                             @inject('tax', 'App\Tax')
                             <div style="padding: 3px 0;">
-                                {{$tax->findOrFail($item['tax_id'])['name']}} ({{ number_format($item['percent'], 2) }}%): 
+                                {{$tax->findOrFail($item['tax_id'])['name']}} ({{ number_format($item['percent'], 2) }}%):
                                 {{ number_format($item['tax_amount'], 2) }}
                             </div>
                         @endforeach
@@ -330,7 +341,7 @@
                             <?php $TotalRetenciones += $item['tax_amount']; ?>
                             @inject('tax', 'App\Tax')
                             <div style="padding: 3px 0;">
-                                {{$tax->findOrFail($item['tax_id'])['name']}}: 
+                                {{$tax->findOrFail($item['tax_id'])['name']}}:
                                 {{ number_format($item['tax_amount'], 2) }}
                             </div>
                         @endforeach
@@ -505,7 +516,7 @@
             <img style="width: 70%;" src="{{$imageQr}}">
         </div>
     </div>
-    
+
     <div id="footer" style="font-size: 13px; text-align: center;">
         @isset($request->foot_note)
             <p id='mi-texto-1'>{{$request->foot_note}}</p>

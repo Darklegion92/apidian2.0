@@ -135,6 +135,17 @@
                         <td style="padding: 0; width: 50%;">Fecha Vencimiento:</td>
                         <td style="padding: 0;">{{$paymentForm[0]->payment_due_date}}</td>
                     </tr>
+                    @if($request['currency_id'] != 35 && $request['currency_id'] !== null)
+                        @inject('currency', 'App\TypeCurrency')
+                        <tr>
+                            <td style="padding: 0; width: 50%;">Tipo Moneda:</td>
+                            <td style="padding: 0;">{{$currency->where('id', 'like', $request['currency_id'].'%')->firstOrFail()['name']}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0; width: 50%;">T.R.M:</td>
+                            <td style="padding: 0;">{{number_format($request['calculationrate'], 2)}}</td>
+                        </tr>
+                    @endif
                 </table>
             </td>
         </tr>
