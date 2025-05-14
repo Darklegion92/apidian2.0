@@ -595,6 +595,15 @@
                     <td class="text-right">{{number_format($request['deductions']['pension_deduction'], 2)}}</td>
                 </tr>
             @endif
+            @if(isset($request['deductions']['fondosp_deduction_SP']))
+                <?php $ItemNro = $ItemNro + 1; ?>
+                <tr>
+                    <td>{{$ItemNro}}</td>
+                    <td>DEDUCCION CORRESPONDIENTE A FONDOSP</td>
+                    <td></td>
+                    <td class="text-right">{{number_format($request['deductions']['fondosp_deduction_SP'], 2)}}</td>
+                </tr>
+            @endif
             @if(isset($request['deductions']['labor_union']))
                 @foreach($request['deductions']['labor_union'] as $labor_union)
                 <?php $ItemNro = $ItemNro + 1; ?>
