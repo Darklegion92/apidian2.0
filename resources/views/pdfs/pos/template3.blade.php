@@ -90,7 +90,7 @@
 <table style="width: 100%; font-size: 9px; margin-top: 10px;">
     <tr>
         <td style="text-align: left;">
-            <strong>FACTURA ELECTRONICA DE VENTA {{$resolution->prefix}} - {{$request->number}}</strong><br>
+            <strong>DOCUMENTO EQUIVALENTE ELECTRONICO DEL TIQUETE DE MAQUINA REGISTRADORA CON SISTEMA P.O.S. No: {{$resolution->prefix}} - {{$request->number}}</strong><br>
             <strong>Fecha Emisión: {{$date}}</strong><br>
             <strong>Fecha Validación DIAN: {{$date}}</strong><br>
             <strong>Hora Validación DIAN: {{$time}}</strong>
