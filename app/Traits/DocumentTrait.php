@@ -451,8 +451,6 @@ trait DocumentTrait
                     // Convertimos el objeto Request a array, aplicamos la conversión, luego volvemos a stdClass
                     $originalArray = $request->all(); // aquí sí es un Request válido
                     $convertedRequestArray = $this->divideMonetaryValues($originalArray, $rate);
-                    // Lo volvemos stdClass para que el blade lo lea como objeto (->propiedad)
-//                    $request = json_decode(json_encode($convertedRequestArray));
                     $request = new InvoiceRequest($convertedRequestArray);
                 }
                 if($template_json){
@@ -469,8 +467,8 @@ trait DocumentTrait
                         $pdf = $this->initMPdf('pos', $template_pdf);
                     else
                         $pdf = $this->initMPdf();
-                    $pdf->SetHTMLHeader(View::make("pdfs.".strtolower($tipodoc).".header".$template_pdf, compact("user", "company", "customer", "resolution", "date", "time", "paymentForm", "request", "cufecude", "imageQr", "imgLogo", "withHoldingTaxTotal", "notes", "healthfields", "firma_facturacion", "logo_empresa_emisora")));
-                    $pdf->SetHTMLFooter(View::make("pdfs.".strtolower($tipodoc).".footer".$template_pdf, compact("user", "company", "customer", "resolution", "date", "time", "paymentForm", "request", "cufecude", "imageQr", "imgLogo", "withHoldingTaxTotal", "notes", "healthfields", "firma_facturacion", "logo_empresa_emisora")));
+//                    $pdf->SetHTMLHeader(View::make("pdfs.".strtolower($tipodoc).".header".$template_pdf, compact("user", "company", "customer", "resolution", "date", "time", "paymentForm", "request", "cufecude", "imageQr", "imgLogo", "withHoldingTaxTotal", "notes", "healthfields", "firma_facturacion", "logo_empresa_emisora")));
+//                    $pdf->SetHTMLFooter(View::make("pdfs.".strtolower($tipodoc).".footer".$template_pdf, compact("user", "company", "customer", "resolution", "date", "time", "paymentForm", "request", "cufecude", "imageQr", "imgLogo", "withHoldingTaxTotal", "notes", "healthfields", "firma_facturacion", "logo_empresa_emisora")));
                     $pdf->WriteHTML(View::make("pdfs.".strtolower($tipodoc).".template".$template_pdf, compact("user", "company", "customer", "resolution", "date", "time", "paymentForm", "request", "cufecude", "imageQr", "imgLogo", "withHoldingTaxTotal", "notes", "healthfields", "firma_facturacion", "logo_empresa_emisora")), HTMLParserMode::HTML_BODY);
 //                    $pdf->SetHTMLHeader(View::make("pdfs.invoice.header", compact("resolution", "date", "time", "user", "request", "company", "imgLogo")));
 //                    $pdf->SetHTMLFooter(View::make("pdfs.invoice.footer", compact("resolution", "request", "cufecude", "date", "time")));
@@ -890,7 +888,7 @@ trait DocumentTrait
         $margin_bottom = null;
 
         $filename = base_path('resources/views/pdfs/' . $type . '/config'.$template.'.json');
-            if (file_exists($filename)) {
+        if (file_exists($filename)) {
             $jsonD =  file_get_contents('config'.$template.'.json');
             $margin = json_decode($jsonD,true);
             if(isset($margin)){
@@ -924,6 +922,17 @@ trait DocumentTrait
             $margin_bottom = '5';
             $format_print = [$ancho, $alto];
          }
+
+        if($type == 'pos'){
+            $margin_top = '2';
+            // Definir el ancho y el alto en milímetros (por ejemplo, para un largo de 150mm)
+            $ancho = 80;  // 80mm de ancho para la impresora de tirilla
+            $alto = 297;   // El alto puede ser más largo dependiendo del contenido a imprimir
+            $margin_left = '2';
+            $margin_right = '2';
+            $margin_bottom = '5';
+            $format_print = [$ancho, $alto];
+        }
 
         if($template){
             $pdf = new Mpdf([
