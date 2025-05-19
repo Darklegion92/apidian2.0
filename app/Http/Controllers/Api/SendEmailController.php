@@ -72,7 +72,7 @@ class SendEmailController extends Controller
         else
             $email = $customer->email;
 
-        if($document[0]->type_document_id == 1)
+        if($document[0]->type_document_id == 1 || $document[0]->type_document_id == 3)
             $rptafe = file_get_contents(storage_path("app/public/{$company->identification_number}/"."RptaFE-".$document[0]->prefix.$document[0]->number.".xml"));
         else
             if($document[0]->type_document_id == 4)
