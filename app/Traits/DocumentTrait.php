@@ -1749,8 +1749,20 @@ trait DocumentTrait
                     'connect_timeout' => 10,
                     'read_timeout' => 10,
                 ]);
-                // Si el código de estado es 200, la DIAN está disponible
-                \Log::debug(json_encode($response->getStatusCode()));
+               $body = (string) $response->getBody();
+
+                // Verifica si el body contiene una advertencia típica de caída
+                if (
+                    str_contains($body, '</HTML>') ||
+                    str_contains($body, 'Fuera de servicio') ||
+                    str_contains($body, 'Service Unavailable') ||
+                    str_contains($body, 'No disponible') ||
+                    str_contains($body, 'temporarily down')
+                ) {
+                    return false;
+                }
+
+                // Si todo va bien
                 return $response->getStatusCode() == 200;
             } catch (\GuzzleHttp\Exception\ConnectException $e) {
                 $attempt++;

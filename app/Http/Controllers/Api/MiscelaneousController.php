@@ -422,7 +422,6 @@ class MiscelaneousController extends Controller
         $user = auth()->user();
         $company = $user->company;
         $dian_url = $company->software->url;
-        return json_encode($this->verificarEstadoDIAN($dian_url));
         if($this->verificarEstadoDIAN($dian_url))
             return[
                 'success' => true,
