@@ -1749,7 +1749,7 @@ trait DocumentTrait
                     'connect_timeout' => 10,
                     'read_timeout' => 10,
                 ]);
-               $body = (string) $response->getBody();
+                $body = (string) $response->getBody();
 
                 // Verifica si el body contiene una advertencia típica de caída
                 if (
