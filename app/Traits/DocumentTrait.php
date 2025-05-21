@@ -1750,9 +1750,10 @@ trait DocumentTrait
                     'read_timeout' => 10,
                 ]);
                 $body = (string) $response->getBody();
+                \Log::debug($body);
 
                 // Verifica si el body contiene una advertencia típica de caída
-                if (
+/*                if (
                     str_contains($body, '</HTML>') ||
                     str_contains($body, 'Fuera de servicio') ||
                     str_contains($body, 'Service Unavailable') ||
@@ -1760,7 +1761,7 @@ trait DocumentTrait
                     str_contains($body, 'temporarily down')
                 ) {
                     return false;
-                }
+                }   */
 
                 // Si todo va bien
                 return $response->getStatusCode() == 200;
