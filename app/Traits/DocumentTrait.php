@@ -1750,6 +1750,7 @@ trait DocumentTrait
                     'read_timeout' => 10,
                 ]);
                 // Si el código de estado es 200, la DIAN está disponible
+                \Log::debug(json_encode($response->getStatusCode()));
                 return $response->getStatusCode() == 200;
             } catch (\GuzzleHttp\Exception\ConnectException $e) {
                 $attempt++;

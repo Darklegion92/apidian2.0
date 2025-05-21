@@ -586,7 +586,7 @@ class InvoiceController extends Controller
                     $respuestadian = $sendBillSync->signToSend($request->GuardarEn."\\ReqFE-{$resolution->next_consecutive}.xml")->getResponseToObject($request->GuardarEn."\\RptaFE-{$resolution->next_consecutive}.xml");
                 if(isset($respuestadian->html)) {
                     $message = 'El servicio DIAN no se encuentra disponible en el momento, reintente mas tarde...';
-                    return $this->responseStore(false, $message, $request, $invoice_doc, $signInvoice, $invoice, $respuestadian, $resolution, $company, $QRStr, $certificate_days_left, $filename);
+                    return $this->responseStore(false, $message, $request, $invoice_doc, $signInvoice, $invoice, $respuestadian, $resolution, $company, $QRStr, $certificate_days_left, $filename, '');
                 }
 
                 if($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->IsValid == 'true'){
@@ -717,7 +717,7 @@ class InvoiceController extends Controller
                     $respuestadian = $sendBillSync->signToSend(storage_path("app/public/{$company->identification_number}/ReqFE-{$resolution->next_consecutive}.xml"))->getResponseToObject(storage_path("app/public/{$company->identification_number}/RptaFE-{$resolution->next_consecutive}.xml"));
                 if(isset($respuestadian->html)) {
                     $message = "El servicio DIAN no se encuentra disponible en el momento, reintente mas tarde...";
-                    return $this->responseStore(false, $message, $request, $invoice_doc, $signInvoice, $invoice, $respuestadian, $resolution, $company, $QRStr, $certificate_days_left, $filename);
+                    return $this->responseStore(false, $message, $request, $invoice_doc, $signInvoice, $invoice, $respuestadian, $resolution, $company, $QRStr, $certificate_days_left, $filename, '');
                 }
                 // throw new \Exception('Forzando un error para probar el catch.');
 

@@ -417,4 +417,21 @@ class MiscelaneousController extends Controller
             ];
         }
     }
+
+    public function verify_dian_state(){
+        $user = auth()->user();
+        $company = $user->company;
+        $dian_url = $company->software->url;
+        return json_encode($this->verificarEstadoDIAN($dian_url));
+        if($this->verificarEstadoDIAN($dian_url))
+            return[
+                'success' => true,
+                'message' => "Si hay disponibilidad en los servicios DIAN.",
+            ];
+        else
+            return[
+                'success' => false,
+                'message' => "No hay disponibilidad en los servicios DIAN.",
+            ];
+    }
 }

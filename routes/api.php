@@ -65,6 +65,7 @@ Route::middleware('auth:api')->group(function () {
 
     // UBL 2.1
     Route::prefix('/ubl2.1')->group(function () {
+        Route::get('/verify-dian-state', 'Api\MiscelaneousController@verify_dian_state');
 
         Route::prefix('/emailblacklist')->group(function () {
 	        Route::post('/add', 'Api\EmailBlackListController@add');
