@@ -910,7 +910,7 @@ trait DocumentTrait
             $margin_left = '5';
             $margin_right = '5';
             $margin_bottom = '12';
-         }elseif($template == 2)  {
+         }elseif($template != 3 && $template != 1)  {
             $format_print = 'A4';
             $margin_top = '39';
             $margin_left = '10';
@@ -1750,7 +1750,7 @@ trait DocumentTrait
                     'read_timeout' => 10,
                 ]);
                 $body = (string) $response->getBody();
-                \Log::debug($body);
+//                \Log::debug($body);
 
                 // Verifica si el body contiene una advertencia típica de caída
 /*                if (
