@@ -1051,101 +1051,113 @@ class EqDocController extends Controller
 
     public function send_pendings($prefix = null, $number = null)
     {
-        // User
+        // Obtiene el usuario autenticado y su empresa
         $user = auth()->user();
-
-        // User company
         $company = $user->company;
-
-        // Verify Certificate
-        $certificate_days_left = 0;
-        $c = $this->verify_certificate();
-        if(!$c['success'])
-            return $c;
-        else
-            $certificate_days_left = $c['certificate_days_left'];
-
-        if($company->state == false)
+    
+        // Verifica que el certificado esté vigente
+        $certValidation = $this->verify_certificate();
+        if (!$certValidation['success']) return $certValidation;
+    
+        // Verifica que la empresa esté activa
+        if (!$company->state) {
             return [
                 'success' => false,
                 'message' => 'La empresa se encuentra en el momento INACTIVA para enviar documentos electronicos...',
             ];
-
-        if($prefix == null && $number == null)
-//            $documents = Document::where('type_document_id', 12)->where('state_document_id', 2)->where('identification_number', $company->identification_number)->get();
-            $documents = Document::whereIn('type_document_id', [15, 16, 19, 24])->where('state_document_id', 2)->where('identification_number', $company->identification_number)->get();
-
-        if($prefix != null && $number == null)
-//            $documents = Document::where('type_document_id', 12)->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->get();
-            $documents = Document::whereIn('type_document_id', [15, 16, 19, 24])->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->get();
-
-        if($prefix == null && $number != null)
+        }
+    
+        // Inicializa la consulta base con documentos POS pendientes
+        $query = Document::whereIn('type_document_id', [15, 16, 19, 24])
+            ->where('state_document_id', 2);
+    
+        // Filtra según prefijo y número si fueron enviados
+        if ($prefix !== null && $number !== null) {
+            if ($prefix === 'ALL' && $number === 'ALL') {
+                // Envía todos los documentos pendientes de todas las empresas
+                $documents = $query->get();
+            } else {
+                // Envía documento específico
+                $documents = $query->where('identification_number', $company->identification_number)
+                                   ->where('prefix', $prefix)
+                                   ->where('number', $number)
+                                   ->get();
+            }
+        } elseif ($prefix !== null) {
+            // Envía todos los documentos de una empresa y prefijo específico
+            $documents = $query->where('identification_number', $company->identification_number)
+                               ->where('prefix', $prefix)
+                               ->get();
+        } elseif ($number !== null) {
+            // Error: no se puede filtrar solo por número
             return [
                 'success' => false,
                 'message' => 'Para hacer envios los envios pendientes debe al menos suministrar el prefijo de las facturas de contingencia tipo 4 que desea enviar....',
             ];
-
-        if($prefix != null && $number != null){
-            if($prefix == 'ALL' && $number == 'ALL')
-                $documents = Document::whereIn('type_document_id', [15, 16, 19, 24])->where('state_document_id', 2)->get();
-            else
-                $documents = Document::whereIn('type_document_id', [15, 16, 19, 24])->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->where('number', $number)->get();
+        } else {
+            // Envía todos los pendientes de la empresa actual
+            $documents = $query->where('identification_number', $company->identification_number)->get();
         }
-        else{
-//            $documents = Document::where('type_document_id', 12)->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->where('number', $number)->get();
-            $documents = Document::whereIn('type_document_id', [15, 16, 19, 24])->where('state_document_id', 2)->where('identification_number', $company->identification_number)->where('prefix', $prefix)->where('number', $number)->get();
-        }
-
+    
         $respuestas_dian = [];
-        if(count($documents) > 0){
-            foreach($documents as $document){
-                if($prefix == 'ALL' && $number == 'ALL'){
+        if ($documents->count() > 0) {
+            foreach ($documents as $document) {
+                // Si se está enviando globalmente (ALL/ALL), se actualiza el contexto de la empresa
+                if ($prefix === 'ALL' && $number === 'ALL') {
                     $company = Company::where('identification_number', $document->identification_number)->first();
-//                    $company->certificate = Certificate::where('company_id', $company->id)->first();
-//                    $company->software = Software::where('company_id', $company->id)->first();
                 }
-                // Type document
+    
+                // Obtiene tipo de documento para definir prefijos FE, FES, etc.
                 $typeDocument = TypeDocument::findOrFail($document->type_document_id);
-                $pf = strtoupper($typeDocument->prefix);
-                $pfs = strtoupper($typeDocument->prefix)."S";
-
+                $pf = strtoupper($typeDocument->prefix);     // Ej: 'EPOS'
+                $pfs = $pf . 'S';                            // Ej: 'EPOSS'
+    
+                // Configura y prepara el ZIP firmado
                 $sendBillSync = new SendBillSync($company->certificate->path, $company->certificate->password);
                 $sendBillSync->To = $company->software->url;
                 $sendBillSync->fileName = "{$document->prefix}{$document->number}.xml";
-                $sendBillSync->contentFile = base64_encode(file_get_contents(preg_replace("/[\r\n|\n|\r]+/", "", storage_path("app/public/{$company->identification_number}/{$pfs}-{$document->prefix}{$document->number}.zip"))));
-
-                $respuestadian = $sendBillSync->signToSend(storage_path("app/public/{$company->identification_number}/Req{$pf}-{$document->prefix}{$document->number}.xml"))->getResponseToObject(storage_path("app/public/{$company->identification_number}/Rpta{$pf}-{$document->prefix}{$document->number}.xml"));
-                if(isset($respuestadian->html))
+                $sendBillSync->contentFile = base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/{$pfs}-{$document->prefix}{$document->number}.zip")));
+    
+                // Firma y envía el XML, obtiene la respuesta de la DIAN
+                $respuestadian = $sendBillSync
+                    ->signToSend(storage_path("app/public/{$company->identification_number}/Req{$pf}-{$document->prefix}{$document->number}.xml"))
+                    ->getResponseToObject(storage_path("app/public/{$company->identification_number}/Rpta{$pf}-{$document->prefix}{$document->number}.xml"));
+    
+                // Verifica si hubo error de disponibilidad de la DIAN
+                if (isset($respuestadian->html)) {
                     return [
                         'success' => false,
                         'message' => "El servicio DIAN no se encuentra disponible en el momento, reintente mas tarde..."
                     ];
-                if($respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->IsValid == 'true'){
-                    $document->state_document_id = 1;
-                    $document->cufe = $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlDocumentKey;
-                    $document->save();
                 }
-                else{
-                    $document->state_document_id = 0;
-                    $document->cufe = "";
-                    $document->save();
-                }
+    
+                // Actualiza estado según respuesta de la DIAN
+                $isValid = $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->IsValid;
+                $document->state_document_id = $isValid === 'true' ? 1 : 0;
+                $document->cufe = $isValid === 'true' 
+                    ? $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlDocumentKey 
+                    : '';
+                $document->save();
+    
+                // Limpia XML antes de retornar respuesta
                 $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes = null;
                 $respuestas_dian[] = [
                     'document' => "{$document->prefix}-{$document->number}",
                     'Envelope' => $respuestadian->Envelope,
                 ];
             }
+    
             return [
                 'success' => true,
                 'message' => 'Envios de documentos pendientes realizados con exito.',
                 'responses' => $respuestas_dian,
             ];
         }
-        else
-            return [
-                'success' => true,
-                'message' => 'No existen registros de documentos pendientes para realizar envios....',
-            ];
+    
+        return [
+            'success' => true,
+            'message' => 'No existen registros de documentos pendientes para realizar envios....',
+        ];
     }
+    
 }
