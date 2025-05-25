@@ -219,6 +219,34 @@ class InvoiceContingencyRequest extends FormRequest
             'deliveryparty.email' => 'nullable|required_with:deliveryparty|string|email',
             'deliveryparty.merchant_registration' => 'nullable|string',
 
+            // Health Fields
+            'health_fields' => 'nullable|array',
+            'health_fields.print_users_info_to_pdf' => 'nullable|boolean',
+            'health_fields.invoice_period_start_date' => 'nullable|required_with:health_fields|date_format:Y-m-d',
+            'health_fields.invoice_period_end_date' => 'nullable|required_with:health_fields|date_format:Y-m-d',
+            'health_fields.health_type_operation_id' => 'nullable|required_with:health_fields|exists:health_type_operations,id',
+            'health_fields.*.users_info' => 'nullable|array',
+            'health_fields.*.users_info.*.provider_code' => 'nullable|string',
+            'health_fields.*.users_info.*.health_type_document_identification_id' => 'nullable|exists:health_type_document_identifications,id',
+            'health_fields.*.users_info.*.identification_number' => 'nullable|alpha_num|between:3,16',
+            'health_fields.*.users_info.*.surname' => 'nullable|string',
+            'health_fields.*.users_info.*.second_surname' => 'nullable|string',
+            'health_fields.*.users_info.*.first_name' => 'nullable|string',
+            'health_fields.*.users_info.*.middle_name' => 'nullable|string',
+            'health_fields.*.users_info.*.health_type_user_id' => 'nullable|exists:health_type_users,id',
+            'health_fields.*.users_info.*.health_contracting_payment_method_id' => 'nullable|required_with:health_fields|exists:health_contracting_payment_methods,id',
+            'health_fields.*.users_info.*.health_coverage_id' => 'nullable|required_with:health_fields|exists:health_coverages,id',
+            'health_fields.*.users_info.*.autorization_numbers' => 'nullable|string',
+            'health_fields.*.users_info.*.mipres' => 'nullable|string',
+            'health_fields.*.users_info.*.mipres_delivery' => 'nullable|string',
+            'health_fields.*.users_info.*.contract_number' => 'nullable|string',
+            'health_fields.*.users_info.*.policy_number' => 'nullable|string',
+            'health_fields.*.users_info.*.co_payment' => 'nullable|numeric|min:0|not_in:0',
+            'health_fields.*.users_info.*.moderating_fee' => 'nullable|numeric|min:0|not_in:0',
+            'health_fields.*.users_info.*.recovery_fee' => 'nullable|numeric|min:0|not_in:0',
+            'health_fields.*.users_info.*.shared_payment' => 'nullable|numeric|min:0|not_in:0',
+            'health_fields.*.users_info.*.advance_payment' => 'nullable|numeric|min:0|not_in:0',
+
             // Payment form
             'payment_form' => 'nullable|array',
             'payment_form.payment_form_id' => 'nullable|exists:payment_forms,id',
@@ -306,5 +334,16 @@ class InvoiceContingencyRequest extends FormRequest
             'invoice_lines.*.price_amount' => 'required|numeric',
             'invoice_lines.*.base_quantity' => 'required|numeric',
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        if(isset($this->health_fields)){
+            $this->merge([
+                'health_fields' => array_merge($this->input('health_fields', []), [
+                    'print_users_info_to_pdf' => $this->input('health_fields.print_users_info_to_pdf', true),
+                ])
+            ]);
+        }
     }
 }

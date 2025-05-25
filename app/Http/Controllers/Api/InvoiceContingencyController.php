@@ -304,7 +304,7 @@ class InvoiceContingencyController extends Controller
         }
 
         // Create XML
-        $invoice = $this->createXML(compact('user', 'company', 'customer', 'taxTotals', 'withHoldingTaxTotal', 'resolution', 'paymentForm', 'typeDocument', 'invoiceLines', 'allowanceCharges', 'legalMonetaryTotals', 'date', 'time', 'notes', 'typeoperation', 'orderreference', 'AdditionalDocumentReferenceID', 'AdditionalDocumentReferenceDate', 'AdditionalDocumentReferenceTypeDocument', 'prepaidpayment', 'prepaidpayments', 'delivery', 'deliveryparty', 'request', 'idcurrency', 'calculationrate', 'calculationratedate'));
+        $invoice = $this->createXML(compact('user', 'company', 'customer', 'taxTotals', 'withHoldingTaxTotal', 'resolution', 'paymentForm', 'typeDocument', 'invoiceLines', 'allowanceCharges', 'legalMonetaryTotals', 'date', 'time', 'notes', 'typeoperation', 'orderreference', 'AdditionalDocumentReferenceID', 'AdditionalDocumentReferenceDate', 'AdditionalDocumentReferenceTypeDocument', 'prepaidpayment', 'prepaidpayments', 'delivery', 'deliveryparty', 'request', 'idcurrency', 'calculationrate', 'calculationratedate', 'healthfields'));
 
         // Register Customer
         if(env('APPLY_SEND_CUSTOMER_CREDENTIALS', TRUE))

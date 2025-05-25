@@ -11,9 +11,18 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2     http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Invoice-2.1.xsd">
     {{-- UBLExtensions --}}
-    @include('xml._ubl_extensions')
+    @isset($healthfields)
+        @include('xml._ubl_extensions_health')
+    @else
+        @include('xml._ubl_extensions')
+    @endisset
     <cbc:UBLVersionID>UBL 2.1</cbc:UBLVersionID>
-    <cbc:CustomizationID>{{preg_replace("/[\r\n|\n|\r]+/", "", $typeoperation->code)}}</cbc:CustomizationID>
+    @isset($healthfields)
+{{--        <cbc:CustomizationID schemeID="{{preg_replace("/[\r\n|\n|\r]+/", "", $healthfields->health_type_operation()->code)}}">{{preg_replace("/[\r\n|\n|\r]+/", "", $healthfields->health_type_operation()->code)}}</cbc:CustomizationID>  --}}
+        <cbc:CustomizationID>{{preg_replace("/[\r\n|\n|\r]+/", "", $healthfields->health_type_operation()->code)}}</cbc:CustomizationID>
+    @else
+        <cbc:CustomizationID>{{preg_replace("/[\r\n|\n|\r]+/", "", $typeoperation->code)}}</cbc:CustomizationID>
+    @endisset
     <cbc:ProfileID>DIAN 2.1: Factura Electrónica de Venta</cbc:ProfileID>
     <cbc:ProfileExecutionID>{{preg_replace("/[\r\n|\n|\r]+/", "", $company->type_environment->code)}}</cbc:ProfileExecutionID>
     <cbc:ID>{{preg_replace("/[\r\n|\n|\r]+/", "", $resolution->next_consecutive)}}</cbc:ID>
@@ -30,6 +39,10 @@
         <cbc:DocumentCurrencyCode>{{preg_replace("/[\r\n|\n|\r]+/", "", $company->type_currency->code)}}</cbc:DocumentCurrencyCode>
     @endif
     <cbc:LineCountNumeric>{{preg_replace("/[\r\n|\n|\r]+/", "", $invoiceLines->count())}}</cbc:LineCountNumeric>
+    {{-- HealthFields --}}
+    @isset($healthfields)
+        @include('xml._invoice_period', ['node' => 'InvoicePeriod'])
+    @endisset
     {{-- AdditionalDocumentReference --}}
     @include('xml._additional_document_reference')
     {{-- OrderReference --}}
