@@ -135,6 +135,7 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/{testSetId}', 'Api\EqDocController@testSetStore');
             Route::post('/', 'Api\EqDocController@store');
             Route::get('/current_number/{type}/{prefix?}/{ignore_state_document_id?}', 'Api\EqDocController@currentNumber');
+            Route::get('/state_document/{type}/{number}', 'Api\EqDocController@changestateDocument');
         });
 
         // Invoice

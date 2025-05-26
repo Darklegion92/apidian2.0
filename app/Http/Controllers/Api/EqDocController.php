@@ -1054,11 +1054,11 @@ class EqDocController extends Controller
         // Obtiene el usuario autenticado y su empresa
         $user = auth()->user();
         $company = $user->company;
-    
+
         // Verifica que el certificado esté vigente
         $certValidation = $this->verify_certificate();
         if (!$certValidation['success']) return $certValidation;
-    
+
         // Verifica que la empresa esté activa
         if (!$company->state) {
             return [
@@ -1066,11 +1066,11 @@ class EqDocController extends Controller
                 'message' => 'La empresa se encuentra en el momento INACTIVA para enviar documentos electronicos...',
             ];
         }
-    
+
         // Inicializa la consulta base con documentos POS pendientes
         $query = Document::whereIn('type_document_id', [15, 16, 19, 24])
             ->where('state_document_id', 2);
-    
+
         // Filtra según prefijo y número si fueron enviados
         if ($prefix !== null && $number !== null) {
             if ($prefix === 'ALL' && $number === 'ALL') {
@@ -1098,7 +1098,7 @@ class EqDocController extends Controller
             // Envía todos los pendientes de la empresa actual
             $documents = $query->where('identification_number', $company->identification_number)->get();
         }
-    
+
         $respuestas_dian = [];
         if ($documents->count() > 0) {
             foreach ($documents as $document) {
@@ -1106,23 +1106,23 @@ class EqDocController extends Controller
                 if ($prefix === 'ALL' && $number === 'ALL') {
                     $company = Company::where('identification_number', $document->identification_number)->first();
                 }
-    
+
                 // Obtiene tipo de documento para definir prefijos FE, FES, etc.
                 $typeDocument = TypeDocument::findOrFail($document->type_document_id);
                 $pf = strtoupper($typeDocument->prefix);     // Ej: 'EPOS'
                 $pfs = $pf . 'S';                            // Ej: 'EPOSS'
-    
+
                 // Configura y prepara el ZIP firmado
                 $sendBillSync = new SendBillSync($company->certificate->path, $company->certificate->password);
                 $sendBillSync->To = $company->software->url;
                 $sendBillSync->fileName = "{$document->prefix}{$document->number}.xml";
                 $sendBillSync->contentFile = base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/{$pfs}-{$document->prefix}{$document->number}.zip")));
-    
+
                 // Firma y envía el XML, obtiene la respuesta de la DIAN
                 $respuestadian = $sendBillSync
                     ->signToSend(storage_path("app/public/{$company->identification_number}/Req{$pf}-{$document->prefix}{$document->number}.xml"))
                     ->getResponseToObject(storage_path("app/public/{$company->identification_number}/Rpta{$pf}-{$document->prefix}{$document->number}.xml"));
-    
+
                 // Verifica si hubo error de disponibilidad de la DIAN
                 if (isset($respuestadian->html)) {
                     return [
@@ -1130,15 +1130,15 @@ class EqDocController extends Controller
                         'message' => "El servicio DIAN no se encuentra disponible en el momento, reintente mas tarde..."
                     ];
                 }
-    
+
                 // Actualiza estado según respuesta de la DIAN
                 $isValid = $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->IsValid;
                 $document->state_document_id = $isValid === 'true' ? 1 : 0;
-                $document->cufe = $isValid === 'true' 
-                    ? $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlDocumentKey 
+                $document->cufe = $isValid === 'true'
+                    ? $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlDocumentKey
                     : '';
                 $document->save();
-    
+
                 // Limpia XML antes de retornar respuesta
                 $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes = null;
                 $respuestas_dian[] = [
@@ -1146,18 +1146,34 @@ class EqDocController extends Controller
                     'Envelope' => $respuestadian->Envelope,
                 ];
             }
-    
+
             return [
                 'success' => true,
                 'message' => 'Envios de documentos pendientes realizados con exito.',
                 'responses' => $respuestas_dian,
             ];
         }
-    
+
         return [
             'success' => true,
             'message' => 'No existen registros de documentos pendientes para realizar envios....',
         ];
     }
-    
+
+    public function changestateDocument($type, $number)
+    {
+        // User
+        $user = auth()->user();
+
+        // User company
+        $company = $user->company;
+        $invoice = Document::where('identification_number', $company->identification_number)->where('type_document_id', $type)->where('state_document_id', 0)->where('number', $number)->latest()->first();
+        if($invoice){
+            $invoice->state_document_id = 1;
+            $invoice->save();
+        }
+        return [
+            'success' => true
+        ];
+    }
 }
