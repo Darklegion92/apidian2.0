@@ -174,7 +174,7 @@
             @if(isset($request['number_account']))
                 <span style="margin-left: 10px;"><strong>Número de cuenta:</strong> {{$request['number_account']}}</span>
             @endif
-            @if(isset($request['deliveryterms']))
+            @if(isset($request['deliveryterms']) && $request['deliveryterms'] !== null)
                 <span style="margin-left: 10px;"><strong>Términos de Entrega:</strong> {{$request['deliveryterms']['loss_risk_responsibility_code']}} - {{$request['deliveryterms']['loss_risk']}}</span>
                 <span style="margin-left: 10px;"><strong>T.R.M:</strong> {{ number_format($request['calculationrate'], 2) }}</span>
                 <span style="margin-left: 10px;"><strong>Fecha T.R.M:</strong> {{$request['calculationratedate']}}</span>
