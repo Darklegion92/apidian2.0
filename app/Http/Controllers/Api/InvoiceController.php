@@ -1246,11 +1246,11 @@ class InvoiceController extends Controller
         // Usuario autenticado y empresa asociada
         $user = auth()->user();
         $company = $user->company;
-    
+
         // Verifica vigencia del certificado digital
         $certValidation = $this->verify_certificate();
         if (!$certValidation['success']) return $certValidation;
-    
+
         // Verifica que la empresa esté activa
         if (!$company->state) {
             return [
@@ -1258,11 +1258,11 @@ class InvoiceController extends Controller
                 'message' => 'La empresa se encuentra en el momento INACTIVA para enviar documentos electronicos...',
             ];
         }
-    
+
         // Crea consulta base para facturas electrónicas pendientes (type_document_id = 1)
         $query = Document::where('type_document_id', 1)
                          ->where('state_document_id', 2);
-    
+
         // Filtra según parámetros recibidos
         if ($prefix !== null && $number !== null) {
             if ($prefix === 'ALL' && $number === 'ALL') {
@@ -1290,7 +1290,7 @@ class InvoiceController extends Controller
             // Todos los pendientes de la empresa autenticada
             $documents = $query->where('identification_number', $company->identification_number)->get();
         }
-    
+
         $respuestas_dian = [];
         if ($documents->count() > 0) {
             foreach ($documents as $document) {
@@ -1298,17 +1298,17 @@ class InvoiceController extends Controller
                 if ($prefix === 'ALL' && $number === 'ALL') {
                     $company = Company::where('identification_number', $document->identification_number)->first();
                 }
-    
+
                 // Firma y envío del documento a la DIAN
                 $sendBillSync = new SendBillSync($company->certificate->path, $company->certificate->password);
                 $sendBillSync->To = $company->software->url;
                 $sendBillSync->fileName = "{$document->prefix}{$document->number}.xml";
                 $sendBillSync->contentFile = base64_encode(file_get_contents(storage_path("app/public/{$company->identification_number}/FES-{$document->prefix}{$document->number}.zip")));
-    
+
                 $respuestadian = $sendBillSync
                     ->signToSend(storage_path("app/public/{$company->identification_number}/ReqFE-{$document->prefix}{$document->number}.xml"))
                     ->getResponseToObject(storage_path("app/public/{$company->identification_number}/RptaFE-{$document->prefix}{$document->number}.xml"));
-    
+
                 // Si DIAN no está disponible
                 if (isset($respuestadian->html)) {
                     return [
@@ -1316,7 +1316,7 @@ class InvoiceController extends Controller
                         'message' => "El servicio DIAN no se encuentra disponible en el momento, reintente mas tarde..."
                     ];
                 }
-    
+
                 // Actualiza estado según respuesta de la DIAN
                 $isValid = $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->IsValid;
                 $document->state_document_id = $isValid === 'true' ? 1 : 0;
@@ -1324,7 +1324,7 @@ class InvoiceController extends Controller
                     ? $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlDocumentKey
                     : '';
                 $document->save();
-    
+
                 // Limpia contenido para no retornar base64
                 $respuestadian->Envelope->Body->SendBillSyncResponse->SendBillSyncResult->XmlBase64Bytes = null;
                 $respuestas_dian[] = [
@@ -1332,18 +1332,18 @@ class InvoiceController extends Controller
                     'Envelope' => $respuestadian->Envelope,
                 ];
             }
-    
+
             return [
                 'success' => true,
                 'message' => 'Envios de documentos pendientes realizados con exito.',
                 'responses' => $respuestas_dian,
             ];
         }
-    
+
         return [
             'success' => true,
             'message' => 'No existen registros de documentos pendientes para realizar envios....',
         ];
     }
-    
+
 }
