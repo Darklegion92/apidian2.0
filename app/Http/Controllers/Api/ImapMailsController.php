@@ -46,28 +46,65 @@ class ImapMailsController extends Controller
         else
             $request->last_event = 1;
 
-        $subjects = array();
-        try{
-            $inbox = imap_open($this->imap_mailbox_url, $this->imap_user, $this->imap_password);
-            if($request->only_unread)
-                $query_seen_unseen = 'UNSEEN SINCE "'.$request->start_date;
-            else
-                $query_seen_unseen = 'SINCE "'.$request->start_date;
+        $responses = array();
+        $responses_3 = array();
+        $processed_emails = 0;
+        $valid_subjects = 0;
+        $batch_size = 50;
+        $offset = 0;
+        $has_more_emails = true;
+        $all_subjects = array();
+        $total_processed = 0;
 
-            if($request->end_date)
-                $query_before = '" BEFORE "'.$request->end_date.'"';
-            else
-                $query_before = '"';
+        try {
+            while ($has_more_emails) {
+                // Consultar correos con límite y offset
+                $inbox = imap_open($this->imap_mailbox_url, $this->imap_user, $this->imap_password);
+                
+                if (!$inbox) {
+                    throw new \Exception('No se pudo conectar al servidor IMAP: ' . imap_last_error());
+                }
 
-            $emails = imap_search($inbox, $query_seen_unseen.$query_before);
-            if($emails){
-                $responses = array();
-                $responses_3 = array();
-                foreach($emails as $email){
+                if($request->only_unread)
+                    $query_seen_unseen = 'UNSEEN SINCE "'.$request->start_date;
+                else
+                    $query_seen_unseen = 'SINCE "'.$request->start_date;
+
+                if($request->end_date)
+                    $query_before = '" BEFORE "'.$request->end_date.'"';
+                else
+                    $query_before = '"';
+
+                $emails = imap_search($inbox, $query_seen_unseen.$query_before);
+                if (!$emails) {
+                    $has_more_emails = false;
+                    imap_close($inbox);
+                    continue;
+                }
+
+                // Obtener solo el lote actual
+                $current_batch = array_slice($emails, $offset, $batch_size);
+                if (empty($current_batch)) {
+                    $has_more_emails = false;
+                    imap_close($inbox);
+                    continue;
+                }
+
+                \Log::info('Procesando lote de correos', [
+                    'offset' => $offset,
+                    'batch_size' => $batch_size,
+                    'total_emails' => count($emails),
+                    'current_batch_size' => count($current_batch)
+                ]);
+
+                foreach($current_batch as $email) {
+                    $processed_emails++;
                     $overview = imap_fetch_overview($inbox, $email);
-                    foreach($overview as $over){
+                    foreach($overview as $over) {
                         if(isset($over->subject) && (substr_count($over->subject, ";") == 4 or substr_count($over->subject, ";") == 5) and (strpos($over->subject, ";01;") or strpos($over->subject, "; 01;") or strpos($over->subject, ";01 ;") or strpos($over->subject, "; 01 ;"))){
-                            $subjects[utf8_decode($this->fix_text_subjects($over->subject))] = "";
+                            $valid_subjects++;
+                            $current_subject = utf8_decode($this->fix_text_subjects($over->subject));
+                            $all_subjects[$current_subject] = "";
                             $structure = imap_fetchstructure ($inbox, $email);
                             $attachments = array();
                             if(isset($structure->parts) && count($structure->parts)){
@@ -106,78 +143,171 @@ class ImapMailsController extends Controller
                             }
 
                             $filename = "";
+                            $processed_successfully = false;
                             foreach($attachments as $attachment){
                                 if($attachment['is_attachment']){
                                     $filename = $attachment['filename'];
                                     $attachment_file = $attachment['attachment'];
                                     if($attachment_file){
-                                        if(!is_dir(storage_path("received/temp/{$company->identification_number}")))
-                                            mkdir(storage_path("received/temp/{$company->identification_number}"), 0777, true);
-                                        $gestor = fopen(storage_path("received/temp/{$company->identification_number}/".utf8_decode($this->fix_text_subjects($over->subject))."_".$filename), 'w');
-                                        fwrite($gestor, $attachment_file);
-                                        fclose($gestor);
-                                        $this->unzip_attachment(storage_path("received/temp/{$company->identification_number}/".utf8_decode($this->fix_text_subjects($over->subject))."_".$filename));
-                                        $responses[$filename] = $this->execute_event(storage_path("received/temp/{$company->identification_number}/".utf8_decode($this->fix_text_subjects($over->subject))."_".$filename));
-                                        if($request->last_event == 3)
-                                            $responses_3[$filename] = $this->execute_event(storage_path("received/temp/{$company->identification_number}/".utf8_decode($this->fix_text_subjects($over->subject))."_".$filename), $request->last_event);
-                                        else
-                                            $response_3[$filename] = null;
+                                        $temp_dir = storage_path("received/temp/{$company->identification_number}");
+                                        if(!$this->ensure_directory_exists($temp_dir)) {
+                                            \Log::error('No se pudo crear el directorio temporal', [
+                                                'directory' => $temp_dir
+                                            ]);
+                                            continue;
+                                        }
+
+                                        $sanitized_subject = $this->sanitize_filename($current_subject);
+                                        $sanitized_filename = $this->sanitize_filename($filename);
+                                        $full_path = $temp_dir . DIRECTORY_SEPARATOR . $sanitized_subject . "_" . $sanitized_filename;
+
+                                        try {
+                                            $gestor = fopen($full_path, 'w');
+                                            if ($gestor === false) {
+                                                throw new \Exception('No se pudo abrir el archivo para escritura');
+                                            }
+                                            fwrite($gestor, $attachment_file);
+                                            fclose($gestor);
+
+                                            if (!$this->unzip_attachment($full_path)) {
+                                                \Log::error('Error al descomprimir el archivo', [
+                                                    'file' => $full_path
+                                                ]);
+                                                continue;
+                                            }
+
+                                            $responses[$filename] = $this->execute_event($full_path);
+                                            if($request->last_event == 3)
+                                                $responses_3[$filename] = $this->execute_event($full_path, $request->last_event);
+                                            else
+                                                $response_3[$filename] = null;
+                                            
+                                            $processed_successfully = true;
+                                            $total_processed++;
+                                        } catch (\Exception $e) {
+                                            \Log::error('Error al procesar el archivo adjunto: ' . $e->getMessage(), [
+                                                'subject' => $current_subject,
+                                                'filename' => $filename,
+                                                'path' => $full_path
+                                            ]);
+                                            continue;
+                                        }
                                     }
                                 }
                             }
-                            $subjects[utf8_decode($this->fix_text_subjects($over->subject))] = $filename;
-                        }
-                    }
-                }
-                $this->rmDir_rf(storage_path("received/temp/{$company->identification_number}"));
-                $data = [];
-                foreach ($subjects as $subject => $file) {
-                    foreach ($responses[$file] as $xml_file_name => $file_data_1) {
-                        if($request->last_event == 0){
-                            $data[] = [
-                                'subject' => $subject,
-                                'xml_file_name' => $xml_file_name,
-                                'base64_attacheddocument' => $request->base64_attacheddocument ? $file_data_1['base64_attacheddocument'] : null,
-                            ];
-                        }
-                        else
-                            if($request->last_event == 1){
-                                $data[] = [
-                                    'subject' => $subject,
-                                    'xml_file_name' => $xml_file_name,
-                                    'base64_attacheddocument' => $request->base64_attacheddocument ? $file_data_1['base64_attacheddocument'] : null,
-                                    'response_receipt_accknowledgment_1' => $file_data_1['response_execute_event'],
-                                ];
-                            }
-                            else{
-                                foreach ($responses_3[$file] as $xml_file_name_3 => $file_data_3) {
-                                    $data[] = [
-                                        'subject' => $subject,
-                                        'xml_file_name' => $xml_file_name,
-                                        'base64_attacheddocument' => $request->base64_attacheddocument ? $file_data_1['base64_attacheddocument'] : null,
-                                        'response_receipt_accknowledgment_1' => $file_data_1['response_execute_event'],
-                                        'response_receipt_accknowledgment_3' => $file_data_3['response_execute_event'],
-                                    ];
+                            
+                            if ($processed_successfully) {
+                                $all_subjects[$current_subject] = $filename;
+                                // Marcar el correo como leído y moverlo a la papelera
+                                imap_setflag_full($inbox, $email, "\\Seen");
+                                
+                                // Obtener lista de carpetas disponibles
+                                $folders = imap_list($inbox, $this->imap_mailbox_url, "*");
+                                
+                                // Intentar mover a diferentes nombres de carpeta de papelera
+                                $trash_folders = ['Trash', 'INBOX.Trash', 'INBOX/Trash', 'Papelera', 'INBOX.Papelera', 'INBOX/Papelera', 'Deleted Items', 'INBOX.Deleted Items', 'INBOX/Deleted Items', '[Gmail]/Papelera', '[Gmail]/Trash'];
+                                $moved = false;
+                                
+                                foreach ($trash_folders as $folder) {
+                                    // Intentar primero con copy y delete
+                                    if (imap_mail_copy($inbox, $email, $folder)) {
+                                        // Marcar para eliminación
+                                        imap_delete($inbox, $email);
+                                        $moved = true;
+                                        break;
+                                    }
                                 }
+                                
+                                if (!$moved) {
+                                    \Log::error('No se pudo mover el correo a ninguna carpeta de papelera', [
+                                        'subject' => $current_subject,
+                                        'email_number' => $email,
+                                        'error' => imap_last_error()
+                                    ]);
+                                }
+                            }
                         }
                     }
                 }
 
-                return [
-                    'success' => true,
-                    'message' => 'Se encontraron los siguientes emails...',
-                    'data' => $data,
-                ];
+                // Incrementar el offset para el siguiente lote
+                $offset += $batch_size;
+                
+                // Expulsar los correos marcados para eliminación y cerrar la conexión
+                imap_expunge($inbox);
+                imap_close($inbox);
+
+                \Log::info('Lote procesado', [
+                    'total_processed' => $total_processed,
+                    'valid_subjects' => $valid_subjects,
+                    'offset' => $offset
+                ]);
             }
-            else
+
+            if (empty($all_subjects)) {
                 return [
                     'success' => false,
-                    'message' => 'No se encontraron emails despues del dia ... '.$request->start_date,
+                    'message' => 'No se encontraron emails después del día ... '.$request->start_date,
                 ];
+            }
+
+            $this->rmDir_rf(storage_path("received/temp/{$company->identification_number}"));
+            $data = [];
+
+            foreach ($all_subjects as $subject => $file) {
+                if (!isset($responses[$file])) {
+                    continue;
+                }
+
+                foreach ($responses[$file] as $xml_file_name => $file_data_1) {
+                    if($request->last_event == 0){
+                        $data[] = [
+                            'subject' => $subject,
+                            'xml_file_name' => $xml_file_name,
+                            'base64_attacheddocument' => $request->base64_attacheddocument ? $file_data_1['base64_attacheddocument'] : null,
+                        ];
+                    }
+                    else if($request->last_event == 1){
+                        $data[] = [
+                            'subject' => $subject,
+                            'xml_file_name' => $xml_file_name,
+                            'base64_attacheddocument' => $request->base64_attacheddocument ? $file_data_1['base64_attacheddocument'] : null,
+                            'response_receipt_accknowledgment_1' => $file_data_1['response_execute_event'],
+                        ];
+                    }
+                    else{
+                        if (!isset($responses_3[$file])) {
+                            continue;
+                        }
+
+                        foreach ($responses_3[$file] as $xml_file_name_3 => $file_data_3) {
+                            $data[] = [
+                                'subject' => $subject,
+                                'xml_file_name' => $xml_file_name,
+                                'base64_attacheddocument' => $request->base64_attacheddocument ? $file_data_1['base64_attacheddocument'] : null,
+                                'response_receipt_accknowledgment_1' => $file_data_1['response_execute_event'],
+                                'response_receipt_accknowledgment_3' => $file_data_3['response_execute_event'],
+                            ];
+                        }
+                    }
+                }
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Se procesaron ' . $total_processed . ' correos en total',
+                'data' => $data,
+                'stats' => [
+                    'total_processed' => $total_processed,
+                    'valid_subjects' => $valid_subjects,
+                    'total_emails' => $processed_emails
+                ]
+            ];
+
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => 'No se pudo realizar la conexion IMAP, revise parametros de conexion y disponibilidad del buzon.... '.$e->getMessage()." ".imap_last_error(),
+                'message' => 'No se pudo realizar la conexión IMAP, revise parámetros de conexión y disponibilidad del buzón.... '.$e->getMessage()." ".imap_last_error(),
             ];
         }
     }
@@ -219,22 +349,6 @@ class ImapMailsController extends Controller
         return $response;
     }
 
-    private function unzip_attachment($zip_filename){
-        $zip_directory = substr($zip_filename, 0, strlen($zip_filename) - 4);
-
-        if(!is_dir($zip_directory))
-            mkdir($zip_directory, 0777, true);
-        $zip = new ZipArchive;
-        $res = $zip->open($zip_filename);
-        if($res === TRUE){
-          $zip->extractTo($zip_directory);
-          $zip->close();
-          return true;
-        }
-        else
-          return false;
-    }
-
     private function fix_text_subjects($subject, $real_name = FALSE){
         $str = "";
 
@@ -245,10 +359,75 @@ class ImapMailsController extends Controller
             else
                 $str .= utf8_decode($obj->text); // Decodifica si es necesario
         if(!$real_name){
+            // Sanitizar el nombre del archivo
+            $str = $this->sanitize_filename($str);
             return str_replace(":", "-", str_replace("ñ", "n", str_replace("Ñ", "N", str_replace(" ", "_", $str))));
         }
         else{
             return $str;
         }
+    }
+
+    private function sanitize_filename($filename) {
+        // Reemplazar caracteres especiales y acentos
+        $filename = str_replace(
+            ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ', 'Ñ', '¿', '?', '¡', '!', '(', ')', '[', ']', '{', '}', ';', ',', ':', ' '],
+            ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U', 'n', 'N', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '_'],
+            $filename
+        );
+        
+        // Eliminar cualquier otro carácter que no sea alfanumérico, punto, guión o guión bajo
+        $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
+        
+        // Asegurarse de que el nombre no comience o termine con punto o guión
+        $filename = trim($filename, '.-_');
+        
+        // Limitar la longitud del nombre de archivo
+        $filename = substr($filename, 0, 255);
+        
+        return $filename;
+    }
+
+    private function unzip_attachment($zip_filename){
+        $zip_directory = substr($zip_filename, 0, strlen($zip_filename) - 4);
+
+        if(!is_dir($zip_directory))
+            mkdir($zip_directory, 0777, true);
+        $zip = new ZipArchive;
+        $res = $zip->open($zip_filename);
+        if($res === TRUE){
+            try {
+                $zip->extractTo($zip_directory);
+                $zip->close();
+                return true;
+            } catch (\Exception $e) {
+                \Log::error('Error al descomprimir archivo ZIP: ' . $e->getMessage(), [
+                    'zip_filename' => $zip_filename,
+                    'zip_directory' => $zip_directory
+                ]);
+                return false;
+            }
+        }
+        else {
+            \Log::error('Error al abrir archivo ZIP: ' . $res, [
+                'zip_filename' => $zip_filename
+            ]);
+            return false;
+        }
+    }
+
+    private function ensure_directory_exists($path) {
+        if (!is_dir($path)) {
+            try {
+                mkdir($path, 0777, true);
+                return true;
+            } catch (\Exception $e) {
+                \Log::error('Error al crear directorio: ' . $e->getMessage(), [
+                    'path' => $path
+                ]);
+                return false;
+            }
+        }
+        return true;
     }
 }
