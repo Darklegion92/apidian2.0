@@ -22,14 +22,43 @@ class MigrateToGoogleDrive extends Command
         $this->info('Iniciando migración a Google Drive...');
 
         // Inicializar el servicio de Google Drive
-        $this->initializeGoogleDrive();
+        $this->initializeGoogleDrive(config('filesystems.disks.google.folderId', 'root'));
 
         // Crear la carpeta app en Google Drive (equivalente a storage/app)
         $appFolderId = $this->createDirectoryInGoogleDrive('app', $this->rootFolderId);
         $this->folderIds['app'] = $appFolderId;
 
         // Directorios a migrar
-        $directories = ['certificates', 'public', 'temp', 'xml', 'zip'];
+        $directories = ['certificates', 'xml', 'zip'];
+
+        // Crear estructura de carpetas en Google Drive
+        foreach ($directories as $directory) {
+            $this->createDirectoryStructure($directory, $appFolderId);
+        }
+
+        // Migrar archivos
+        foreach ($directories as $directory) {
+            $this->migrateDirectory($directory);
+        }
+
+        $this->handlePublic();
+        $this->info('Migración completada exitosamente!');
+
+    }
+
+    public function handlePublic()
+    {
+        $this->info('Iniciando migración a Google Drive...');
+
+        // Inicializar el servicio de Google Drive
+        $this->initializeGoogleDrive(config('filesystems.disks.google_public.folderId', 'root'));
+
+        // Crear la carpeta app en Google Drive (equivalente a storage/app)
+        $appFolderId = $this->createDirectoryInGoogleDrive('app', $this->rootFolderId);
+        $this->folderIds['app'] = $appFolderId;
+
+        // Directorios a migrar
+        $directories = ['public'];
 
         // Crear estructura de carpetas en Google Drive
         foreach ($directories as $directory) {
@@ -44,7 +73,7 @@ class MigrateToGoogleDrive extends Command
         $this->info('Migración completada exitosamente!');
     }
 
-    protected function initializeGoogleDrive()
+    protected function initializeGoogleDrive($folderId)
     {
         $client = new Google_Client();
         $client->setClientId(config('filesystems.disks.google.clientId'));
@@ -52,7 +81,7 @@ class MigrateToGoogleDrive extends Command
         $client->refreshToken(config('filesystems.disks.google.refreshToken'));
 
         $this->driveService = new Google_Service_Drive($client);
-        $this->rootFolderId = config('filesystems.disks.google.folderId', 'root');
+        $this->rootFolderId = $folderId;
     }
 
     protected function createDirectoryStructure($directory, $parentId)
