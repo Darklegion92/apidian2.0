@@ -66,6 +66,7 @@ class ResumeController extends Controller
         $ncp = DB::select("SELECT count(*) as total FROM documents WHERE state_document_id = 1 AND identification_number = ? AND type_document_id = ? AND date_issue >= ? AND date_issue <= ?", [$company->identification_number, 26, $desde, $hasta])[0]->total;
 //        $ndp = Document::where('state_document_id', 1)->where('identification_number', $company->identification_number)->where('type_document_id', 25)->whereDate('date_issue', '>=', $desde)->whereDate('date_issue', '<=', $hasta)->get();
         $ndp = DB::select("SELECT count(*) as total FROM documents WHERE state_document_id = 1 AND identification_number = ? AND type_document_id = ? AND date_issue >= ? AND date_issue <= ?", [$company->identification_number, 25, $desde, $hasta])[0]->total;
+        $radian = DB::select("SELECT count(*) as total FROM received_documents WHERE state_document_id = 1 AND identification_number = ? AND type_document_id = ? AND date_issue >= ? AND date_issue <= ?", [$company->identification_number, 1, $desde, $hasta])[0]->total;
 
         $invoice = (object)[
             'name' => 'Factura de Venta Nacional',
@@ -117,10 +118,15 @@ class ResumeController extends Controller
             'count' => $ndp,
         ];
 
+        $radian = (object)[
+            'name' => 'Acuses RADIAN',
+            'count' => $radian,
+        ];
+
         return [
             'success' => true,
             'message' => 'NIT Encontrado',
-            'data'=> array($invoice, $credit_note, $debit_note, $payroll, $payroll_note, $support_document, $support_document_note, $pos, $pos_credit_note, $pos_debit_note),
+            'data'=> array($invoice, $credit_note, $debit_note, $payroll, $payroll_note, $support_document, $support_document_note, $pos, $pos_credit_note, $pos_debit_note, $radian),
             'company' => $company->user->name
         ];
     }

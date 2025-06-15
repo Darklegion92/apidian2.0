@@ -30,7 +30,10 @@
         "simplesoftwareio/simple-qrcode": "^2.0",
         "spatie/flysystem-dropbox": "^1.0",
         "spatie/laravel-backup": "^6.0.0",
-        "ubl21dian/torresoftware": "dev-master"
+        "ubl21dian/torresoftware": "dev-master",
+        "google/apiclient": "^2.12.1",
+        "nao-pon/flysystem-google-drive": "^1.1",
+        "league/flysystem": "^1.1"
     },
 	"require-dev": {
         "beyondcode/laravel-dump-server": "^1.2",

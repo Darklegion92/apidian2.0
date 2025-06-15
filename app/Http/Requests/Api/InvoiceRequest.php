@@ -147,6 +147,33 @@ class InvoiceRequest extends FormRequest
             'elaborated' => 'nullable|string',
             'reviewed' => 'nullable|string',
 
+            // Suplemento K
+            'k_supplement_national' => 'nullable|array',
+            'k_supplement_national.FctConvCop' => 'nullable|string',
+            'k_supplement_national.MonedaCop' => 'nullable|string',
+            'k_supplement_national.SubTotalCop' => 'nullable|string',
+            'k_supplement_national.DescuentoDetalleCop' => 'nullable|string',
+            'k_supplement_national.RecargoDetalleCop' => 'nullable|string',
+            'k_supplement_national.TotalBrutoFacturaCop' => 'nullable|string',
+            'k_supplement_national.TotIvaCop' => 'nullable|string',
+            'k_supplement_national.TotIncCop' => 'nullable|string',
+            'k_supplement_national.TotBolCop' => 'nullable|string',
+            'k_supplement_national.TotICLCop' => 'nullable|string',
+            'k_supplement_national.TotINPPCop' => 'nullable|string',
+            'k_supplement_national.TotIBUACop' => 'nullable|string',
+            'k_supplement_national.TotICUICop' => 'nullable|string',
+            'k_supplement_national.TotADVCop' => 'nullable|string',
+            'k_supplement_national.ImpOtroCop' => 'nullable|string',
+            'k_supplement_national.MntImpCop' => 'nullable|string',
+            'k_supplement_national.TotalNetoFacturaCop' => 'nullable|string',
+            'k_supplement_national.MntDctoCop' => 'nullable|string',
+            'k_supplement_national.MntRcgoCop' => 'nullable|string',
+            'k_supplement_national.VlrPagarCop' => 'nullable|string',
+            'k_supplement_national.ReteFueCop' => 'nullable|string',
+            'k_supplement_national.ReteIvaCop' => 'nullable|string',
+            'k_supplement_national.ReteIcaCop' => 'nullable|string',
+            'k_supplement_national.TotAnticiposCop' => 'nullable|string',
+
             // Tipo operacion
             'type_operation_id' => 'nullable|numeric|exists:type_operations,id',
 

@@ -31,3 +31,17 @@ php artisan config:cache && php artisan config:clear && php artisan cache:clear
 urn_on.bat
 
 
+#GOOGLE DRIVE
+#Para obtener el refresh token
+
+Usando la herramienta de OAuth 2.0 Playground de Google:
+1. Ve a OAuth 2.0 Playground https://developers.google.com/oauthplayground/
+2. En la configuración (ícono de engranaje ⚙️ en la esquina superior derecha)
+3. Marca "Use your own OAuth credentials"
+4. Ingresa tu Client ID y Client Secret
+5. En el paso 1, selecciona "https://www.googleapis.com/auth/drive"
+6. En el paso 2, haz clic en "Exchange authorization code for tokens"
+7. Esto te dará un nuevo refresh token
+
+#Migrar los datos locales
+php artisan storage:migrate-to-google
