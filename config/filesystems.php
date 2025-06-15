@@ -26,7 +26,7 @@ return [
     |
     */
 
-    'cloud' => env('FILESYSTEM_CLOUD', 's3'),
+    'cloud' => env('FILESYSTEM_CLOUD', 'google'),
 
     /*
     |--------------------------------------------------------------------------
@@ -67,6 +67,28 @@ return [
         'dropbox' => [
             'driver' => 'dropbox',
             'authorization_token' => env('DROPBOX_AUTH_TOKEN'),
+        ],
+
+        'google' => [
+            'driver' => 'google',
+            'clientId' => env('GOOGLE_DRIVE_CLIENT_ID'),
+            'clientSecret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
+            'refreshToken' => env('GOOGLE_DRIVE_REFRESH_TOKEN'),
+            'folderId' => env('GOOGLE_DRIVE_FOLDER_ID'),
+            'useDisplayPaths' => false,
+            'caseSensitive' => false,
+            'normalizePath' => true,
+        ],
+
+        'google_public' => [
+            'driver' => 'google',
+            'clientId' => env('GOOGLE_DRIVE_CLIENT_ID'),
+            'clientSecret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
+            'refreshToken' => env('GOOGLE_DRIVE_REFRESH_TOKEN'),
+            'folderId' => env('GOOGLE_DRIVE_PUBLIC_FOLDER_ID'),
+            'useDisplayPaths' => false,
+            'caseSensitive' => false,
+            'normalizePath' => true,
         ],
     ],
 

@@ -8,6 +8,8 @@ use App\Http\Requests\Api\ImapMailsRequest;
 use App\Http\Requests\Api\SendEventRequest;
 use App\Traits\DocumentTrait;
 use ZipArchive;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ImapMailsController extends Controller
 {
@@ -396,39 +398,128 @@ class ImapMailsController extends Controller
 
     private function execute_event($zip_filename, $event_id = 1){
         $zip_directory = substr($zip_filename, 0, strlen($zip_filename) - 4);
+        $company = auth()->user()->company;
+        
+        try {
+            Log::info("Iniciando proceso de Google Drive", [
+                'company_id' => $company->identification_number
+            ]);
 
-        $files = array_diff(scandir($zip_directory), array('..', '.'));
-        $response = array();
-        foreach($files as $file){
-            $file = $zip_directory.DIRECTORY_SEPARATOR.$file;
-            if(pathinfo(strtolower($file), PATHINFO_EXTENSION) == "xml"){
-                $event = new SendEventController();
-                $send = [
-                    'event_id' => $event_id,
-                    'sendmail' => true,
-                    'sendmailtome' => true,
-                    'allow_cash_documents' => true,
-                    'base64_attacheddocument_name' => basename($file),
-                    'base64_attacheddocument' => base64_encode(file_get_contents($file)),
-                ];
-                $data_send = json_encode($send);
-                if($event_id != 0){
-                    $r = new SendEventRequest($send);
-                    $r = $event->sendevent($r);
-                    $response[basename($file)] = [
-                                    'base64_attacheddocument' => base64_encode(file_get_contents($file)),
-                                    'response_execute_event' => $r,
-                             ];
-                }
-                else{
-                    $response[basename($file)] = [
-                                   'base64_attacheddocument' => null,
-                                   'response_execute_event' => null,
-                             ];
+            // Obtener el servicio de Google Drive
+            $client = new \Google_Client();
+            $client->setClientId(config('filesystems.disks.google.clientId'));
+            $client->setClientSecret(config('filesystems.disks.google.clientSecret'));
+            $client->refreshToken(config('filesystems.disks.google.refreshToken'));
+            $service = new \Google_Service_Drive($client);
+
+            // Crear la carpeta received si no existe
+            $receivedFolderId = $this->findOrCreateFolder($service, 'received', config('filesystems.disks.google.folderId'));
+            Log::info("Carpeta received creada/encontrada", ['folder_id' => $receivedFolderId]);
+
+            // Crear la carpeta de la compañía si no existe
+            $companyFolderId = $this->findOrCreateFolder($service, $company->identification_number, $receivedFolderId);
+            Log::info("Carpeta de compañía creada/encontrada", ['folder_id' => $companyFolderId]);
+
+            $files = array_diff(scandir($zip_directory), array('..', '.'));
+            $response = array();
+            foreach($files as $file){
+                $file = $zip_directory.DIRECTORY_SEPARATOR.$file;
+                if(pathinfo(strtolower($file), PATHINFO_EXTENSION) == "xml"){
+                    try {
+                        $fileName = basename($file);
+                        Log::info("Procesando archivo", ['name' => $fileName]);
+                        
+                        // Leer el contenido del archivo
+                        $content = file_get_contents($file);
+                        Log::info("Contenido del archivo leído", ['size' => strlen($content)]);
+                        
+                        // Crear el archivo en Google Drive
+                        $fileMetadata = new \Google_Service_Drive_DriveFile([
+                            'name' => $fileName,
+                            'parents' => [$companyFolderId],
+                            'mimeType' => 'text/xml'
+                        ]);
+                        
+                        $uploadedFile = $service->files->create($fileMetadata, [
+                            'data' => $content,
+                            'mimeType' => 'text/xml',
+                            'uploadType' => 'multipart'
+                        ]);
+                        
+                        Log::info("Archivo subido exitosamente", [
+                            'name' => $fileName,
+                            'file_id' => $uploadedFile->getId()
+                        ]);
+                        
+                        $event = new SendEventController();
+                        $send = [
+                            'event_id' => $event_id,
+                            'sendmail' => true,
+                            'sendmailtome' => true,
+                            'allow_cash_documents' => true,
+                            'base64_attacheddocument_name' => $fileName,
+                            'base64_attacheddocument' => base64_encode($content),
+                        ];
+                        $data_send = json_encode($send);
+                        if($event_id != 0){
+                            $r = new SendEventRequest($send);
+                            $r = $event->sendevent($r);
+                            $response[$fileName] = [
+                                'base64_attacheddocument' => base64_encode($content),
+                                'response_execute_event' => $r,
+                            ];
+                        }
+                        else{
+                            $response[$fileName] = [
+                                'base64_attacheddocument' => null,
+                                'response_execute_event' => null,
+                            ];
+                        }
+                    } catch (\Exception $e) {
+                        Log::error("Error al procesar archivo", [
+                            'file' => $fileName,
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString()
+                        ]);
+                        throw $e;
+                    }
                 }
             }
+            return $response;
+        } catch (\Exception $e) {
+            Log::error("Error en el proceso de Google Drive", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
         }
-        return $response;
+    }
+
+    private function findOrCreateFolder($service, $folderName, $parentId) {
+        // Buscar la carpeta
+        $query = "mimeType='application/vnd.google-apps.folder' and name='{$folderName}' and '{$parentId}' in parents and trashed=false";
+        $results = $service->files->listFiles([
+            'q' => $query,
+            'fields' => 'files(id, name)'
+        ]);
+
+        // Si la carpeta existe, retornar su ID
+        if (count($results->getFiles()) > 0) {
+            return $results->getFiles()[0]->getId();
+        }
+
+        // Si no existe, crearla
+        $folderMetadata = new \Google_Service_Drive_DriveFile([
+            'name' => $folderName,
+            'mimeType' => 'application/vnd.google-apps.folder',
+            'parents' => [$parentId]
+        ]);
+
+        $folder = $service->files->create($folderMetadata, [
+            'fields' => 'id'
+        ]);
+
+        return $folder->getId();
     }
 
     private function fix_text_subjects($subject, $real_name = FALSE){
@@ -471,45 +562,54 @@ class ImapMailsController extends Controller
     }
 
     private function unzip_attachment($zip_filename){
+        $company = auth()->user()->company;
         $zip_directory = substr($zip_filename, 0, strlen($zip_filename) - 4);
-
-        if(!is_dir($zip_directory))
-            mkdir($zip_directory, 0777, true);
-        $zip = new ZipArchive;
-        $res = $zip->open($zip_filename);
-        if($res === TRUE){
-            try {
-                $zip->extractTo($zip_directory);
-                $zip->close();
-                return true;
-            } catch (\Exception $e) {
-                \Log::error('Error al descomprimir archivo ZIP: ' . $e->getMessage(), [
-                    'zip_filename' => $zip_filename,
-                    'zip_directory' => $zip_directory
+        
+        try {
+            // Crear directorio temporal local
+            if (!is_dir($zip_directory)) {
+                mkdir($zip_directory, 0777, true);
+            }
+            
+            $zip = new ZipArchive;
+            $res = $zip->open($zip_filename);
+            
+            if($res === TRUE){
+                try {
+                    $zip->extractTo($zip_directory);
+                    $zip->close();
+                    return true;
+                } catch (\Exception $e) {
+                    Log::error('Error al descomprimir archivo ZIP: ' . $e->getMessage(), [
+                        'zip_filename' => $zip_filename,
+                        'zip_directory' => $zip_directory
+                    ]);
+                    return false;
+                }
+            }
+            else {
+                Log::error('Error al abrir archivo ZIP: ' . $res, [
+                    'zip_filename' => $zip_filename
                 ]);
                 return false;
             }
-        }
-        else {
-            \Log::error('Error al abrir archivo ZIP: ' . $res, [
-                'zip_filename' => $zip_filename
-            ]);
+        } catch (\Exception $e) {
+            Log::error('Error en el proceso de descompresión: ' . $e->getMessage());
             return false;
         }
     }
 
     private function ensure_directory_exists($path) {
-        if (!is_dir($path)) {
-            try {
+        try {
+            if (!is_dir($path)) {
                 mkdir($path, 0777, true);
-                return true;
-            } catch (\Exception $e) {
-                \Log::error('Error al crear directorio: ' . $e->getMessage(), [
-                    'path' => $path
-                ]);
-                return false;
             }
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Error al crear directorio: ' . $e->getMessage(), [
+                'path' => $path
+            ]);
+            return false;
         }
-        return true;
     }
 }
