@@ -199,7 +199,12 @@ class MigrateToGoogleDrive extends Command
                     'supportsAllDrives' => true
                 ]);
 
-                $this->info("✓ Archivo migrado exitosamente");
+                // Eliminar el archivo local después de una migración exitosa
+                if (unlink($file)) {
+                    $this->info("✓ Archivo migrado y eliminado exitosamente");
+                } else {
+                    $this->warn("✓ Archivo migrado pero no se pudo eliminar localmente");
+                }
             } catch (\Exception $e) {
                 $this->error("✗ Error al migrar archivo {$relativePath}: " . $e->getMessage());
             }
