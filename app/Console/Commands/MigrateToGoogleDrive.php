@@ -29,7 +29,7 @@ class MigrateToGoogleDrive extends Command
         $this->folderIds['app'] = $appFolderId;
 
         // Directorios a migrar
-        $directories = ['certificates', 'xml', 'zip'];
+        $directories = ['xml', 'zip'];
 
         // Crear estructura de carpetas en Google Drive
         foreach ($directories as $directory) {
