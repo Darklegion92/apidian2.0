@@ -23,14 +23,6 @@ class ImapMailsController extends Controller
     private $imap_mailbox_url;
 
     function imap_receipt_acknowledgment(ImapMailsRequest $request){
-        \Log::info('Iniciando procesamiento de correos IMAP', [
-            'user_id' => auth()->id(),
-            'company_id' => auth()->user()->company->id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'only_unread' => $request->only_unread ?? false
-        ]);
-
         // User
         $user = auth()->user();
 
@@ -45,16 +37,8 @@ class ImapMailsController extends Controller
             $this->imap_encryption = $company->imap_encryption;
             $this->imap_mailbox_url = "{{$this->imap_server}:{$this->imap_port}/imap/{$this->imap_encryption}/novalidate-cert}INBOX";
             
-            \Log::info('Configuración IMAP cargada', [
-                'server' => $this->imap_server,
-                'port' => $this->imap_port,
-                'encryption' => $this->imap_encryption
-            ]);
         }
         else {
-            \Log::error('Configuración IMAP incompleta', [
-                'company_id' => $company->id
-            ]);
             return [
                 'success' => false,
                 'message' => 'No se han configurado los parametros IMAP en la empresa',
@@ -83,15 +67,8 @@ class ImapMailsController extends Controller
                 
                 if (!$inbox) {
                     $error = imap_last_error();
-                    \Log::error('Error de conexión IMAP', [
-                        'error' => $error,
-                        'server' => $this->imap_server,
-                        'port' => $this->imap_port
-                    ]);
                     throw new \Exception('No se pudo conectar al servidor IMAP: ' . $error);
                 }
-
-                \Log::info('Conexión IMAP establecida exitosamente');
 
                 if($request->only_unread)
                     $query_seen_unseen = 'UNSEEN SINCE "'.$request->start_date;
@@ -224,9 +201,6 @@ class ImapMailsController extends Controller
                                         if($attachment_file){
                                             $temp_dir = storage_path("received/temp/{$company->identification_number}");
                                             if(!$this->ensure_directory_exists($temp_dir)) {
-                                                \Log::error('No se pudo crear el directorio temporal', [
-                                                    'directory' => $temp_dir
-                                                ]);
                                                 continue;
                                             }
 
@@ -243,23 +217,11 @@ class ImapMailsController extends Controller
                                                 fclose($gestor);
 
                                                 if (!$this->unzip_attachment($full_path)) {
-                                                    \Log::error('Error al descomprimir el archivo', [
-                                                        'file' => $full_path,
-                                                        'subject' => $current_subject
-                                                    ]);
                                                     continue;
                                                 }
 
-                                                \Log::info('Archivo descomprimido exitosamente', [
-                                                    'file' => $full_path,
-                                                    'subject' => $current_subject
-                                                ]);
-
                                                 $responses[$filename] = $this->execute_event($full_path);
-                                                \Log::info('Evento ejecutado', [
-                                                    'filename' => $filename,
-                                                    'response' => $responses[$filename]
-                                                ]);
+
                                                 if($request->last_event == 3)
                                                     $responses_3[$filename] = $this->execute_event($full_path, $request->last_event);
                                                 else
@@ -268,11 +230,6 @@ class ImapMailsController extends Controller
                                                 $processed_successfully = true;
                                                 $total_processed++;
                                             } catch (\Exception $e) {
-                                                \Log::error('Error al procesar el archivo adjunto: ' . $e->getMessage(), [
-                                                    'subject' => $current_subject,
-                                                    'filename' => $filename,
-                                                    'path' => $full_path
-                                                ]);
                                                 continue;
                                             }
                                         }
@@ -300,14 +257,6 @@ class ImapMailsController extends Controller
                                             break;
                                         }
                                     }
-                                    
-                                    if (!$moved) {
-                                        \Log::error('No se pudo mover el correo a ninguna carpeta de papelera', [
-                                            'subject' => $current_subject,
-                                            'email_number' => $email,
-                                            'error' => imap_last_error()
-                                        ]);
-                                    }
                                 }
                             }
                         }
@@ -320,12 +269,6 @@ class ImapMailsController extends Controller
                 // Expulsar los correos marcados para eliminación y cerrar la conexión
                 imap_expunge($inbox);
                 imap_close($inbox);
-
-                \Log::info('Lote procesado', [
-                    'total_processed' => $total_processed,
-                    'valid_subjects' => $valid_subjects,
-                    'offset' => $offset
-                ]);
             }
 
             if (empty($all_subjects)) {
