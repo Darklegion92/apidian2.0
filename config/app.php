@@ -180,6 +180,7 @@ return [
         SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
 	App\Providers\DropboxServiceProvider::class,
+        App\Providers\GoogleDriveServiceProvider::class,
 
     ],
 

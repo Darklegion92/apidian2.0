@@ -165,7 +165,9 @@
                             <p style="font-size: 8px">Tipo Servicio     : {{$typespd->where('id', 'like', $request['spd'][$i]['agency_information']['type_spd_id'].'%')->firstOrFail()['name']}}</p>
                             <p style="font-size: 8px">Razon Social      : {{$request['spd'][$i]['agency_information']['office_lending_company']}}</p>
                             <p style="font-size: 8px">Numero de Contrato: {{$request['spd'][$i]['agency_information']['contract_number']}}</p>
-                            <p style="font-size: 8px">Periodo Servicio  : {{$request['spd'][$i]['agency_information']['start_period_date']}} - {{$request['spd'][$i]['agency_information']['end_period_date']}}</p>
+                            @if(isset($request['spd'][$i]['agency_information']['start_period_date']) && isset($request['spd'][$i]['agency_information']['end_period_date']))
+                                <p style="font-size: 8px">Periodo Servicio  : {{$request['spd'][$i]['agency_information']['start_period_date']}} - {{$request['spd'][$i]['agency_information']['end_period_date']}}</p>
+                            @endif
                             <p style="font-size: 8px">Observaciones     : {{$request['spd'][$i]['agency_information']['note']}}</p>
                         </td>
                         <td style="padding: 0;">

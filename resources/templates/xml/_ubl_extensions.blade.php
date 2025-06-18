@@ -110,4 +110,49 @@
             </ext:ExtensionContent>
         </ext:UBLExtension>
     @endif
+    @if(isset($request['k_supplement_national']))
+        <ext:UBLExtension>
+            <ext:ExtensionContent>
+                <CustomTagGeneral>
+                    <Interoperabilidad>
+                        <Group>
+                            <Collection schemeName="Información Complementaria">
+                                <AdditionalInformation>
+                                    <id>1</id>
+                                    <name></name>
+                                    <value></value>
+                                </AdditionalInformation>
+                            </Collection>
+                        </Group>
+                    </Interoperabilidad>
+                    <TotalesCop>
+                        <FctConvCop>{{$request['k_supplement_national']['FctConvCop']}}</FctConvCop>
+                        <MonedaCop>{{$request['k_supplement_national']['MonedaCop']}}</MonedaCop>
+                        <SubTotalCop>{{$request['k_supplement_national']['SubTotalCop']}}</SubTotalCop>
+                        <DescuentoDetalleCop>{{$request['k_supplement_national']['DescuentoDetalleCop']}}</DescuentoDetalleCop>
+                        <RecargoDetalleCop>{{$request['k_supplement_national']['RecargoDetalleCop']}}</RecargoDetalleCop>
+                        <TotalBrutoFacturaCop>{{$request['k_supplement_national']['TotalBrutoFacturaCop']}}</TotalBrutoFacturaCop>
+                        <TotIvaCop>{{$request['k_supplement_national']['TotIvaCop']}}</TotIvaCop>
+                        <TotIncCop>{{$request['k_supplement_national']['TotIncCop']}}</TotIncCop>
+                        <TotBolCop>{{$request['k_supplement_national']['TotBolCop']}}</TotBolCop>
+						<TotICLCop>{{$request['k_supplement_national']['TotICLCop']}}</TotICLCop>
+						<TotINPPCop>{{$request['k_supplement_national']['TotINPPCop']}}</TotINPPCop>
+						<TotIBUACop>{{$request['k_supplement_national']['TotIBUACop']}}</TotIBUACop>
+						<TotICUICop>{{$request['k_supplement_national']['TotICUICop']}}</TotICUICop>
+						<TotADVCop>{{$request['k_supplement_national']['TotADVCop']}}</TotADVCop>
+                        <ImpOtroCop>{{$request['k_supplement_national']['ImpOtroCop']}}</ImpOtroCop>
+                        <MntImpCop>{{$request['k_supplement_national']['MntImpCop']}}</MntImpCop>
+                        <TotalNetoFacturaCop>{{$request['k_supplement_national']['TotalNetoFacturaCop']}}</TotalNetoFacturaCop>
+                        <MntDctoCop>{{$request['k_supplement_national']['MntDctoCop']}}</MntDctoCop>
+                        <MntRcgoCop>{{$request['k_supplement_national']['MntRcgoCop']}}</MntRcgoCop>
+                        <VlrPagarCop>{{$request['k_supplement_national']['VlrPagarCop']}}</VlrPagarCop>
+                        <ReteFueCop>{{$request['k_supplement_national']['ReteFueCop']}}</ReteFueCop>
+                        <ReteIvaCop>{{$request['k_supplement_national']['ReteIvaCop']}}</ReteIvaCop>
+                        <ReteIcaCop>{{$request['k_supplement_national']['ReteIcaCop']}}</ReteIcaCop>
+                        <TotAnticiposCop>{{$request['k_supplement_national']['TotAnticiposCop']}}</TotAnticiposCop>
+                    </TotalesCop>
+                </CustomTagGeneral>
+            </ext:ExtensionContent>
+        </ext:UBLExtension>
+    @endif
 </ext:UBLExtensions>
