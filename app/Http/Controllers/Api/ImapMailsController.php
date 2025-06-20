@@ -63,16 +63,13 @@ class ImapMailsController extends Controller
         try {
             while ($has_more_emails) {
                 // Consultar correos con límite y offset
-                Log::info("IMAP: Intentando conectar a {$this->imap_mailbox_url} con usuario {$this->imap_user}");
                 $inbox = imap_open($this->imap_mailbox_url, $this->imap_user, $this->imap_password);
                 
                 if (!$inbox) {
                     $error = imap_last_error();
-                    Log::error("IMAP: No se pudo conectar al servidor IMAP: {$error}");
                     throw new \Exception('No se pudo conectar al servidor IMAP: ' . $error);
                 }
 
-                Log::info("IMAP: Conexión exitosa.");
 
                 if($request->only_unread)
                     $query_seen_unseen = 'UNSEEN SINCE "'.$request->start_date;
@@ -85,16 +82,13 @@ class ImapMailsController extends Controller
                     $query_before = '"';
 
                 $full_query = $query_seen_unseen.$query_before;
-                Log::info("IMAP: Buscando correos con la consulta: {$full_query}");
                 $emails = imap_search($inbox, $full_query);
                 if (!$emails) {
                     $has_more_emails = false;
-                    Log::info("IMAP: No se encontraron correos para la consulta.");
                     imap_close($inbox);
                     continue;
                 }
 
-                Log::info("IMAP: Se encontraron ".count($emails)." correos.");
 
                 // Obtener solo el lote actual
                 $current_batch = array_slice($emails, $offset, $batch_size);
@@ -103,13 +97,11 @@ class ImapMailsController extends Controller
                     imap_close($inbox);
                     continue;
                 }
-                Log::info("IMAP: Procesando lote de ".count($current_batch)." correos. Offset: {$offset}");
 
                 foreach($current_batch as $email) {
                     $processed_emails++;
                     $overview = imap_fetch_overview($inbox, $email);
                     foreach($overview as $over) {
-                        Log::info("IMAP: Procesando email #{$over->msgno} con UID {$over->uid}");
 
                         if(isset($over->subject)) {
                             // Decodificar el asunto MIME si está codificado
@@ -122,27 +114,22 @@ class ImapMailsController extends Controller
                                     $clean_subject .= mb_convert_encoding($part->text, 'UTF-8', $part->charset);
                                 }
                             }
-                            Log::info("IMAP: Asunto original: '{$over->subject}', Asunto decodificado: '{$clean_subject}'");
 
                             // Limpiar el asunto de prefijos comunes
                             // Primero eliminar Fwd: RV: o RV: Fwd:
                             $clean_subject = preg_replace('/^(Fwd:\s*RV:|RV:\s*Fwd:)\s*/i', '', $clean_subject);
                             // Luego eliminar Fwd: o RV: individuales
                             $clean_subject = preg_replace('/^(Fwd:|RV:)\s*/i', '', $clean_subject);
-                            Log::info("IMAP: Asunto después de limpiar prefijos: '{$clean_subject}'");
                             
                             // Eliminar el punto y coma final si existe
                             $clean_subject = rtrim($clean_subject, ';');
-                            Log::info("IMAP: Asunto final antes de la validación: '{$clean_subject}'");
                             
                             $semicolon_count = substr_count($clean_subject, ";");
                             $has_01 = (strpos($clean_subject, ":01;") !== false || strpos($clean_subject, ";01;") !== false || strpos($clean_subject, "; 01;") !== false || strpos($clean_subject, ";01 ;") !== false || strpos($clean_subject, "; 01 ;") !== false);
     
-                            Log::info("IMAP: Validación de asunto para '{$clean_subject}': Cantidad de ';' = {$semicolon_count}, Contiene ';01;' = ".($has_01 ? 'si' : 'no'));
                             
                             if(($semicolon_count >= 3 and $semicolon_count <= 5) and $has_01){
                                 $valid_subjects++;
-                                Log::info("IMAP: Asunto VÁLIDO. Procesando email #{$over->msgno}");
                                 $current_subject = utf8_decode($this->fix_text_subjects($clean_subject));
                                 $all_subjects[$current_subject] = "";
                                 $structure = imap_fetchstructure ($inbox, $email);
@@ -187,35 +174,28 @@ class ImapMailsController extends Controller
                                 foreach($attachments as $attachment){
                                     if($attachment['is_attachment']){
                                         $filename = $attachment['filename'];
-                                        Log::info("IMAP: Email #{$over->msgno}, Archivo adjunto encontrado: {$filename}");
                                         $attachment_file = $attachment['attachment'];
                                         if($attachment_file){
                                             $temp_dir = storage_path("received/temp/{$company->identification_number}");
                                             if(!$this->ensure_directory_exists($temp_dir)) {
-                                                Log::error("IMAP: No se pudo crear el directorio temporal: {$temp_dir}");
                                                 continue;
                                             }
 
                                             $sanitized_subject = $this->sanitize_filename($current_subject);
                                             $sanitized_filename = $this->sanitize_filename($filename);
                                             $full_path = $temp_dir . DIRECTORY_SEPARATOR . $sanitized_subject . "_" . $sanitized_filename;
-                                            Log::info("IMAP: Guardando adjunto en: {$full_path}");
 
                                             try {
                                                 $gestor = fopen($full_path, 'w');
                                                 if ($gestor === false) {
-                                                    Log::error("IMAP: No se pudo abrir el archivo para escritura: {$full_path}");
                                                     throw new \Exception('No se pudo abrir el archivo para escritura');
                                                 }
                                                 fwrite($gestor, $attachment_file);
                                                 fclose($gestor);
-                                                Log::info("IMAP: Adjunto guardado exitosamente.");
 
                                                 if (!$this->unzip_attachment($full_path)) {
-                                                    Log::error("IMAP: Falla al descomprimir el adjunto: {$full_path}");
                                                     continue;
                                                 }
-                                                Log::info("IMAP: Adjunto descomprimido exitosamente.");
 
                                                 $responses[$filename] = $this->execute_event($full_path);
 
@@ -227,12 +207,10 @@ class ImapMailsController extends Controller
                                                 $processed_successfully = true;
                                                 $total_processed++;
                                             } catch (\Exception $e) {
-                                                Log::error("IMAP: Excepción al procesar adjunto del email #{$over->msgno}: ".$e->getMessage());
                                                 continue;
                                             }
                                         }
                                         else {
-                                            Log::warning("IMAP: Email #{$over->msgno}, adjunto {$filename} está vacío.");
                                         }
                                     }
                                 }
@@ -241,7 +219,6 @@ class ImapMailsController extends Controller
                                     $all_subjects[$current_subject] = $filename;
                                     // Marcar el correo como leído y moverlo a la papelera
                                     imap_setflag_full($inbox, $email, "\\Seen");
-                                    Log::info("IMAP: Marcado como leído el email #{$over->msgno}");
                                     
                                     // Obtener lista de carpetas disponibles
                                     $folders = imap_list($inbox, $this->imap_mailbox_url, "*");
@@ -256,22 +233,18 @@ class ImapMailsController extends Controller
                                             // Marcar para eliminación
                                             imap_delete($inbox, $email);
                                             $moved = true;
-                                            Log::info("IMAP: Email #{$over->msgno} movido a la papelera '{$folder}'.");
                                             break;
                                         }
                                     }
 
                                     if (!$moved) {
-                                        Log::warning("IMAP: No se pudo mover el email #{$over->msgno} a ninguna carpeta de papelera.");
                                     }
                                 }
                             }
                             else {
-                                Log::warning("IMAP: Asunto NO VÁLIDO para '{$clean_subject}'. Saltando email #{$over->msgno}.");
                             }
                         }
                         else {
-                            Log::warning("IMAP: El email #{$over->msgno} no tiene asunto.");
                             continue;
                         }
                     }
@@ -358,9 +331,6 @@ class ImapMailsController extends Controller
         $company = auth()->user()->company;
         
         try {
-            Log::info("Iniciando proceso de Google Drive", [
-                'company_id' => $company->identification_number
-            ]);
 
             // Obtener el servicio de Google Drive
             $client = new \Google_Client();
@@ -371,11 +341,9 @@ class ImapMailsController extends Controller
 
             // Crear la carpeta received si no existe
             $receivedFolderId = $this->findOrCreateFolder($service, 'received', config('filesystems.disks.google.folderId'));
-            Log::info("Carpeta received creada/encontrada", ['folder_id' => $receivedFolderId]);
 
             // Crear la carpeta de la compañía si no existe
             $companyFolderId = $this->findOrCreateFolder($service, $company->identification_number, $receivedFolderId);
-            Log::info("Carpeta de compañía creada/encontrada", ['folder_id' => $companyFolderId]);
 
             $files = array_diff(scandir($zip_directory), array('..', '.'));
             $response = array();
@@ -384,11 +352,9 @@ class ImapMailsController extends Controller
                 if(pathinfo(strtolower($file), PATHINFO_EXTENSION) == "xml"){
                     try {
                         $fileName = basename($file);
-                        Log::info("Procesando archivo", ['name' => $fileName]);
                         
                         // Leer el contenido del archivo
                         $content = file_get_contents($file);
-                        Log::info("Contenido del archivo leído", ['size' => strlen($content)]);
                         
                         // Crear el archivo en Google Drive
                         $fileMetadata = new \Google_Service_Drive_DriveFile([
@@ -401,11 +367,6 @@ class ImapMailsController extends Controller
                             'data' => $content,
                             'mimeType' => 'text/xml',
                             'uploadType' => 'multipart'
-                        ]);
-                        
-                        Log::info("Archivo subido exitosamente", [
-                            'name' => $fileName,
-                            'file_id' => $uploadedFile->getId()
                         ]);
                         
                         $event = new SendEventController();
@@ -433,21 +394,12 @@ class ImapMailsController extends Controller
                             ];
                         }
                     } catch (\Exception $e) {
-                        Log::error("Error al procesar archivo", [
-                            'file' => $fileName,
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTraceAsString()
-                        ]);
                         throw $e;
                     }
                 }
             }
             return $response;
         } catch (\Exception $e) {
-            Log::error("Error en el proceso de Google Drive", [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
             throw $e;
         }
     }
@@ -537,21 +489,13 @@ class ImapMailsController extends Controller
                     $zip->close();
                     return true;
                 } catch (\Exception $e) {
-                    Log::error('Error al descomprimir archivo ZIP: ' . $e->getMessage(), [
-                        'zip_filename' => $zip_filename,
-                        'zip_directory' => $zip_directory
-                    ]);
                     return false;
                 }
             }
             else {
-                Log::error('Error al abrir archivo ZIP: ' . $res, [
-                    'zip_filename' => $zip_filename
-                ]);
                 return false;
             }
         } catch (\Exception $e) {
-            Log::error('Error en el proceso de descompresión: ' . $e->getMessage());
             return false;
         }
     }
@@ -563,9 +507,6 @@ class ImapMailsController extends Controller
             }
             return true;
         } catch (\Exception $e) {
-            Log::error('Error al crear directorio: ' . $e->getMessage(), [
-                'path' => $path
-            ]);
             return false;
         }
     }
