@@ -179,8 +179,13 @@ class MigrateToGoogleDrive extends Command
         }
 
         $files = $this->getAllFiles($localPath);
+        $today = now()->startOfDay();
 
         foreach ($files as $file) {
+            if (filemtime($file) < $today->getTimestamp()) {
+                continue;
+            }
+            
             $relativePath = $this->getRelativePath($file);
             $this->info("Migrando archivo: {$relativePath}");
 
