@@ -149,17 +149,11 @@ class MigrateToGoogleDrive extends Command
         $excludedFolders = $directoryName === 'app' ? ['public', 'certificates'] : [];
         
         $files = $this->getAllFiles($localPath, $excludedFolders);
-        $today = now()->startOfDay();
 
         foreach ($files as $file) {
             // Filtrar solo archivos con las extensiones permitidas
             $fileExtension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
             if (!in_array($fileExtension, $allowedExtensions)) {
-                continue;
-            }
-
-            // Solo migrar archivos del día actual
-            if (filemtime($file) < $today->getTimestamp()) {
                 continue;
             }
             
