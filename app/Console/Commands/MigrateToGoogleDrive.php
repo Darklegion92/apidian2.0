@@ -19,59 +19,20 @@ class MigrateToGoogleDrive extends Command
 
     public function handle()
     {
-        $this->info('Iniciando migración a Google Drive...');
+        $this->info('Iniciando migración de archivos .xml y .zip a Google Drive...');
 
-        // Inicializar el servicio de Google Drive
-        $this->initializeGoogleDrive(config('filesystems.disks.google.folderId', 'root'));
+        // Extensiones de archivos a migrar
+        $allowedExtensions = ['xml', 'zip'];
 
-        // Crear la carpeta app en Google Drive (equivalente a storage/app)
-        $appFolderId = $this->createDirectoryInGoogleDrive('app', $this->rootFolderId);
-        $this->folderIds['app'] = $appFolderId;
-
-        // Directorios a migrar
-        $directories = ['xml', 'zip'];
-
-        // Crear estructura de carpetas en Google Drive
-        foreach ($directories as $directory) {
-            $this->createDirectoryStructure($directory, $appFolderId);
-        }
-
-        // Migrar archivos
-        foreach ($directories as $directory) {
-            $this->migrateDirectory($directory);
-        }
-
-        $this->handlePublic();
-        $this->info('Migración completada exitosamente!');
-
-    }
-
-    public function handlePublic()
-    {
-        $this->info('Iniciando migración a Google Drive...');
-
-        // Inicializar el servicio de Google Drive
-        $this->initializeGoogleDrive(config('filesystems.disks.google_public.folderId', 'root'));
-
-        // Crear la carpeta app en Google Drive (equivalente a storage/app)
-        $appFolderId = $this->createDirectoryInGoogleDrive('app', $this->rootFolderId);
-        $this->folderIds['app'] = $appFolderId;
-
-        // Directorios a migrar
-        $directories = ['public'];
-
-        // Crear estructura de carpetas en Google Drive
-        foreach ($directories as $directory) {
-            $this->createDirectoryStructure($directory, $appFolderId);
-        }
-
-        // Migrar archivos
-        foreach ($directories as $directory) {
-            $this->migrateDirectory($directory);
-        }
+        // Migrar archivos del directorio app
+        $this->migrateFromDirectory('app', $allowedExtensions, config('filesystems.disks.google.folderId', 'root'));
+        
+        // Migrar archivos del directorio public
+        $this->migrateFromDirectory('public', $allowedExtensions, config('filesystems.disks.google_public.folderId', 'root'));
 
         $this->info('Migración completada exitosamente!');
     }
+
 
     protected function initializeGoogleDrive($folderId)
     {
@@ -165,13 +126,22 @@ class MigrateToGoogleDrive extends Command
         }
     }
 
-    protected function migrateDirectory($directory)
+    protected function migrateFromDirectory($directoryName, $allowedExtensions, $googleDriveFolderId)
     {
-        $this->info("Migrando directorio: app/{$directory}");
+        $this->info("Migrando archivos ." . implode(', .', $allowedExtensions) . " del directorio {$directoryName}...");
 
-        $localPath = storage_path("app/{$directory}");
+        // Inicializar el servicio de Google Drive para este directorio
+        $this->initializeGoogleDrive($googleDriveFolderId);
+
+        // Crear la carpeta raíz en Google Drive
+        $rootFolderId = $this->createDirectoryInGoogleDrive($directoryName, $this->rootFolderId);
+        $this->folderIds = [$directoryName => $rootFolderId]; // Reset folder IDs for this directory
+
+        // Determinar la ruta local
+        $localPath = $directoryName === 'public' ? public_path() : storage_path($directoryName);
+        
         if (!is_dir($localPath)) {
-            $this->warn("El directorio {$directory} no existe localmente, saltando...");
+            $this->warn("El directorio {$directoryName} no existe localmente, saltando...");
             return;
         }
 
@@ -179,17 +149,27 @@ class MigrateToGoogleDrive extends Command
         $today = now()->startOfDay();
 
         foreach ($files as $file) {
+            // Filtrar solo archivos con las extensiones permitidas
+            $fileExtension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            if (!in_array($fileExtension, $allowedExtensions)) {
+                continue;
+            }
+
+            // Solo migrar archivos del día actual
             if (filemtime($file) < $today->getTimestamp()) {
                 continue;
             }
             
-            $relativePath = $this->getRelativePath($file);
+            $relativePath = $this->getRelativePath($file, $directoryName);
             $this->info("Migrando archivo: {$relativePath}");
 
             try {
-                $content = file_get_contents($file);
+                // Crear estructura de directorios si no existe
                 $parentPath = dirname($relativePath);
-                $parentId = $this->folderIds[$parentPath] ?? $this->folderIds['app'];
+                $this->ensureDirectoryExists($parentPath);
+
+                $content = file_get_contents($file);
+                $parentId = $this->folderIds[$parentPath] ?? $this->folderIds[$directoryName];
 
                 $fileMetadata = new \Google_Service_Drive_DriveFile([
                     'name' => basename($relativePath),
@@ -207,7 +187,7 @@ class MigrateToGoogleDrive extends Command
                 // Eliminar el archivo local después de la migración exitosa
                 if ($uploadedFile && $uploadedFile->id) {
                     unlink($file);
-                    $this->info("✓ Archivo migrado y eliminado localmente: {$relativePath}");
+                    $this->info("✓ Archivo .{$fileExtension} migrado y eliminado localmente: {$relativePath}");
                 } else {
                     $this->error("✗ Error: No se pudo confirmar la migración del archivo {$relativePath}");
                 }
@@ -215,6 +195,30 @@ class MigrateToGoogleDrive extends Command
             } catch (\Exception $e) {
                 $this->error("✗ Error al migrar archivo {$relativePath}: " . $e->getMessage());
                 $this->error("  El archivo local se mantiene sin cambios por seguridad");
+            }
+        }
+    }
+
+    protected function ensureDirectoryExists($path)
+    {
+        if (isset($this->folderIds[$path])) {
+            return;
+        }
+
+        $pathParts = explode('/', $path);
+        $currentPath = '';
+        $currentParentId = $this->rootFolderId;
+
+        foreach ($pathParts as $part) {
+            if (empty($part)) continue;
+            
+            $currentPath = $currentPath ? $currentPath . '/' . $part : $part;
+            
+            if (!isset($this->folderIds[$currentPath])) {
+                $currentParentId = $this->createDirectoryInGoogleDrive($part, $currentParentId);
+                $this->folderIds[$currentPath] = $currentParentId;
+            } else {
+                $currentParentId = $this->folderIds[$currentPath];
             }
         }
     }
@@ -235,15 +239,22 @@ class MigrateToGoogleDrive extends Command
         return $files;
     }
 
-    protected function getRelativePath($path)
+    protected function getRelativePath($path, $directoryName = 'app')
     {
         // Convertir la ruta a formato Unix
         $path = str_replace('\\', '/', $path);
         
-        // Obtener la parte relativa después de 'storage/app/'
-        $parts = explode('storage/app/', $path);
-        if (count($parts) > 1) {
-            return 'app/' . $parts[1];
+        if ($directoryName === 'public') {
+            // Para archivos públicos, obtener la ruta relativa después del directorio public
+            $publicPath = str_replace('\\', '/', public_path());
+            $relativePath = str_replace($publicPath . '/', '', $path);
+            return 'public/' . $relativePath;
+        } else {
+            // Para archivos de storage, obtener la parte relativa después de 'storage/app/'
+            $parts = explode('storage/app/', $path);
+            if (count($parts) > 1) {
+                return 'app/' . $parts[1];
+            }
         }
         
         return $path;
