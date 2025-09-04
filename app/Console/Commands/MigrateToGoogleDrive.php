@@ -41,9 +41,6 @@ class MigrateToGoogleDrive extends Command
             $this->migrateDirectory($directory);
         }
 
-        // Eliminar archivos de los directorios con más de 30 días de antigüedad
-        $this->deleteOldFiles($directories);
-
         $this->handlePublic();
         $this->info('Migración completada exitosamente!');
 
@@ -207,47 +204,19 @@ class MigrateToGoogleDrive extends Command
                     'supportsAllDrives' => true
                 ]);
 
-                $this->info("✓ Archivo migrado y eliminado exitosamente");
+                // Eliminar el archivo local después de la migración exitosa
+                if ($uploadedFile && $uploadedFile->id) {
+                    unlink($file);
+                    $this->info("✓ Archivo migrado y eliminado localmente: {$relativePath}");
+                } else {
+                    $this->error("✗ Error: No se pudo confirmar la migración del archivo {$relativePath}");
+                }
         
             } catch (\Exception $e) {
                 $this->error("✗ Error al migrar archivo {$relativePath}: " . $e->getMessage());
+                $this->error("  El archivo local se mantiene sin cambios por seguridad");
             }
         }
-    }
-
-    protected function deleteOldFiles(array $directories)
-    {
-        $this->info('Iniciando limpieza de archivos locales antiguos...');
-
-        $days = 30;
-        $timeLimit = now()->subDays($days)->getTimestamp();
-
-        foreach ($directories as $directory) {
-            $localPath = storage_path("app/{$directory}");
-            if (!is_dir($localPath)) {
-                $this->warn("El directorio {$directory} no existe localmente, saltando limpieza...");
-                continue;
-            }
-
-            $this->info("Buscando archivos con más de {$days} días de antigüedad en: app/{$directory}");
-
-            $files = $this->getAllFiles($localPath);
-
-            foreach ($files as $file) {
-                if (filemtime($file) < $timeLimit) {
-                    try {
-                        unlink($file);
-                        $relativePath = $this->getRelativePath($file);
-                        $this->info("✓ Archivo antiguo eliminado: {$relativePath}");
-                    } catch (\Exception $e) {
-                        $relativePath = $this->getRelativePath($file);
-                        $this->error("✗ Error al eliminar el archivo {$relativePath}: " . $e->getMessage());
-                    }
-                }
-            }
-        }
-
-        $this->info('Limpieza de archivos antiguos completada.');
     }
 
     protected function getAllFiles($directory)
