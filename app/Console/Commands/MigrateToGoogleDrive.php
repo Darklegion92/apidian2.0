@@ -145,7 +145,10 @@ class MigrateToGoogleDrive extends Command
             return;
         }
 
-        $files = $this->getAllFiles($localPath);
+        // Carpetas a excluir del directorio app
+        $excludedFolders = $directoryName === 'app' ? ['public', 'certificates'] : [];
+        
+        $files = $this->getAllFiles($localPath, $excludedFolders);
         $today = now()->startOfDay();
 
         foreach ($files as $file) {
@@ -223,7 +226,7 @@ class MigrateToGoogleDrive extends Command
         }
     }
 
-    protected function getAllFiles($directory)
+    protected function getAllFiles($directory, $excludedFolders = [])
     {
         $files = [];
         $iterator = new \RecursiveIteratorIterator(
@@ -232,7 +235,24 @@ class MigrateToGoogleDrive extends Command
 
         foreach ($iterator as $file) {
             if ($file->isFile()) {
-                $files[] = $file->getPathname();
+                $filePath = $file->getPathname();
+                
+                // Verificar si el archivo está en una carpeta excluida
+                $shouldExclude = false;
+                foreach ($excludedFolders as $excludedFolder) {
+                    // Normalizar las rutas para comparación
+                    $normalizedPath = str_replace('\\', '/', $filePath);
+                    $excludedPath = str_replace('\\', '/', $directory . '/' . $excludedFolder);
+                    
+                    if (strpos($normalizedPath, $excludedPath) !== false) {
+                        $shouldExclude = true;
+                        break;
+                    }
+                }
+                
+                if (!$shouldExclude) {
+                    $files[] = $filePath;
+                }
             }
         }
 
