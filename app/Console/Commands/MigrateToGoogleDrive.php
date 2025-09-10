@@ -146,7 +146,7 @@ class MigrateToGoogleDrive extends Command
         }
 
         // Carpetas a excluir del directorio app
-        $excludedFolders = $directoryName === 'app' ? ['public', 'certificates'] : [];
+        $excludedFolders = $directoryName === 'app' ? ['certificates'] : [];
         
         $files = $this->getAllFiles($localPath, $excludedFolders);
 
