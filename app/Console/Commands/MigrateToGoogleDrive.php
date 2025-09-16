@@ -16,6 +16,7 @@ class MigrateToGoogleDrive extends Command
     protected $driveService;
     protected $rootFolderId;
     protected $folderIds = [];
+    protected $folderCounter = 1; // Contador para crear carpetas con sufijo
 
     public function handle()
     {
@@ -136,6 +137,7 @@ class MigrateToGoogleDrive extends Command
         // Crear la carpeta raíz en Google Drive
         $rootFolderId = $this->createDirectoryInGoogleDrive($directoryName, $this->rootFolderId);
         $this->folderIds = [$directoryName => $rootFolderId]; // Reset folder IDs for this directory
+        $this->folderCounter = 1; // Reset contador para cada directorio
 
         // Determinar la ruta local
         $localPath = $directoryName === 'public' ? public_path() : storage_path($directoryName);
@@ -190,8 +192,46 @@ class MigrateToGoogleDrive extends Command
                 }
         
             } catch (\Exception $e) {
-                $this->error("✗ Error al migrar archivo {$relativePath}: " . $e->getMessage());
-                $this->error("  El archivo local se mantiene sin cambios por seguridad");
+                // Verificar si es el error de límite de archivos
+                if ($this->isFolderLimitExceededError($e)) {
+                    $this->warn("⚠ Límite de archivos alcanzado en la carpeta actual. Creando nueva carpeta...");
+                    $this->createNewFolderWithSuffix($directoryName);
+                    
+                    // Reintentar la migración con la nueva carpeta
+                    try {
+                        $parentPath = dirname($relativePath);
+                        $this->ensureDirectoryExists($parentPath);
+                        
+                        $content = file_get_contents($file);
+                        $parentId = $this->folderIds[$parentPath] ?? $this->folderIds[$directoryName];
+
+                        $fileMetadata = new \Google_Service_Drive_DriveFile([
+                            'name' => basename($relativePath),
+                            'parents' => [$parentId]
+                        ]);
+
+                        $uploadedFile = $this->driveService->files->create($fileMetadata, [
+                            'data' => $content,
+                            'mimeType' => mime_content_type($file),
+                            'uploadType' => 'multipart',
+                            'fields' => 'id',
+                            'supportsAllDrives' => true
+                        ]);
+
+                        if ($uploadedFile && $uploadedFile->id) {
+                            unlink($file);
+                            $this->info("✓ Archivo .{$fileExtension} migrado exitosamente en nueva carpeta: {$relativePath}");
+                        } else {
+                            $this->error("✗ Error: No se pudo confirmar la migración del archivo {$relativePath} en la nueva carpeta");
+                        }
+                    } catch (\Exception $retryException) {
+                        $this->error("✗ Error al migrar archivo {$relativePath} en nueva carpeta: " . $retryException->getMessage());
+                        $this->error("  El archivo local se mantiene sin cambios por seguridad");
+                    }
+                } else {
+                    $this->error("✗ Error al migrar archivo {$relativePath}: " . $e->getMessage());
+                    $this->error("  El archivo local se mantiene sin cambios por seguridad");
+                }
             }
         }
     }
@@ -272,5 +312,34 @@ class MigrateToGoogleDrive extends Command
         }
         
         return $path;
+    }
+
+    /**
+     * Verifica si el error es por límite de archivos en la carpeta
+     */
+    protected function isFolderLimitExceededError(\Exception $e)
+    {
+        $message = $e->getMessage();
+        return strpos($message, 'numChildrenInNonRootLimitExceeded') !== false ||
+               strpos($message, 'The limit for this folder\'s number of children') !== false;
+    }
+
+    /**
+     * Crea una nueva carpeta con sufijo cuando se alcanza el límite de archivos
+     */
+    protected function createNewFolderWithSuffix($directoryName)
+    {
+        $this->folderCounter++;
+        $newFolderName = $directoryName . '_' . $this->folderCounter;
+        
+        $this->info("Creando nueva carpeta: {$newFolderName}");
+        
+        // Crear la nueva carpeta en Google Drive
+        $newFolderId = $this->createDirectoryInGoogleDrive($newFolderName, $this->rootFolderId);
+        
+        // Actualizar el folderIds para usar la nueva carpeta
+        $this->folderIds[$directoryName] = $newFolderId;
+        
+        $this->info("✓ Nueva carpeta creada: {$newFolderName} (ID: {$newFolderId})");
     }
 } 
